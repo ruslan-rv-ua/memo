@@ -1,0 +1,223 @@
+[tool.poetry]
+name = "memo"
+version = "0.0.1"
+description = ""
+authors = [
+    "Ruslan Iskov <ruslan.rv.ua@gmail.com>",
+]
+license = "MIT"
+readme = "README.md"
+
+documentation = "https://ruslan-rv-ua.github.io/memo"
+homepage = "https://ruslan-rv-ua.github.io/memo"
+repository = "https://github.com/ruslan-rv-ua/memo"
+
+# packages = [
+#     { include = "memo", from = "src" }
+# ]
+
+[tool.poetry.dependencies]
+python = ">=3.11, <4.0"
+wxpython = "^4.2.1"
+
+[tool.poetry.group.dev.dependencies]
+python-kacl = "*"
+
+[tool.poetry.group.lint.dependencies]
+black = "*"
+ruff = "*"
+# codespell = "*"
+mypy = "*"
+pre-commit = "*"
+# pip-audit = "*"
+
+[tool.poetry.group.docs.dependencies]
+mkdocstrings = {version = ">=0.18", extras = ["python"]}
+mkdocs-material = "*"
+pymdown-extensions = "*"
+
+[tool.poetry.group.test.dependencies]
+pytest = "*"
+pytest-github-actions-annotate-failures = "*"
+pytest-cov = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+##################################################
+
+[tool.poetry_bumpversion.file."memo/__init__.py"]
+
+##################################################
+
+[tool.black]
+# https://github.com/psf/black
+line-length = 120
+target-version = ["py311"]
+color = true
+
+include = '\.pyi?$'
+exclude = '''
+/(
+        \.eggs
+    | \.git
+    | \.hg
+    | \.mypy_cache
+    | \.nox
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+)/
+'''
+
+##################################################
+
+[tool.pytest.ini_options]
+# https://docs.pytest.org/en/6.2.x/customize.html#pyproject-toml
+# Directories that are not visited by pytest collector:
+norecursedirs =["hooks", "*.egg", ".eggs", "dist", "build", "docs", ".tox", ".git", "__pycache__"]
+doctest_optionflags = ["NUMBER", "NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL"]
+
+# Extra options:
+# addopts = [
+#   "--strict-markers",
+#   "--tb=short",
+#   "--doctest-modules",
+#   "--doctest-continue-on-failure",
+# ]
+
+addopts = """\
+    --cov memo \
+    --cov tests \
+    --cov-report term-missing \
+    --no-cov-on-fail \
+"""
+
+[tool.coverage.run]
+source = ["tests"]
+
+[tool.coverage.paths]
+source = "Memo"
+
+[tool.coverage.report]
+fail_under = 100
+# show_missing = true
+exclude_lines = [
+    'if TYPE_CHECKING:',
+    'pragma: no cover',
+    'except ImportError as e:',
+    'except ImportError:'
+]
+
+##################################################
+
+[tool.mypy]
+# https://mypy.readthedocs.io/en/latest/config_file.html#using-a-pyproject-toml-file
+python_version = 3.11
+pretty = true
+show_traceback = true
+color_output = true
+
+allow_redefinition = false
+check_untyped_defs = true
+# disallow_any_generics = true
+disallow_any_unimported = true
+# disallow_incomplete_defs = true
+disallow_untyped_defs = true
+# ignore_missing_imports = true
+# implicit_reexport = false
+no_implicit_optional = true
+show_column_numbers = true
+show_error_codes = true
+# strict_equality = true
+show_error_context = true
+strict_equality = true
+strict_optional = true
+warn_no_return = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
+# mypy_path = "memo"
+exclude = [
+    "build",
+    "dist",
+    "docs",
+    "examples",
+    "scripts",
+    "tests",
+    ".venv",
+]
+
+##################################################
+
+[tool.ruff]
+line-length = 120
+src = ["memo"]
+target-version = "py311"
+
+ignore-init-module-imports = true
+
+select = [
+    "A", # flake8-builtins
+    "B", # flake8-bugbear
+    "BLE", # flake8-blind-except
+    "C4", # flake8-comprehensions
+    "C90", # mccabe
+    "D", # pydocstyle
+    "DJ", # flake8-django
+    "DTZ", # flake8-datetimez
+    "E", # pycodestyle errors
+    "ERA", # eradicate
+    "EXE", # flake8-executable
+    "F", # pyflakes
+    "G", # flake8-logging-format
+    "I", # isort
+    "ICN", # flake8-import-conventions
+    "ISC", # flake8-implicit-str-concat
+    "N", # pep8-naming
+    "PIE", # flake8-pie
+    "PLC", # pylint - convention
+    "PLE", # pylint - error
+    "PLW", # pylint - warning
+    "PTH", # flake8-use-pathlib
+    "Q", # flake8-quotes
+    "RET", # flake8-return
+    "RUF", # Ruff-specific rules
+    "S", # flake8-bandit
+    "SIM", # flake8-simplify
+    "T10", # flake8-debugger
+    "T20", # flake8-print
+    "TCH", # flake8-type-checking
+    "TID", # flake8-tidy-imports
+    "UP", # pyupgrade
+    "W", # pycodestyle - warning
+    "YTT", # flake8-2020
+]
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fix = true
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.pydocstyle]
+convention = "google"
+
+[tool.ruff.mccabe]
+max-complexity = 12
+
+[tool.ruff.pep8-naming]
+classmethod-decorators = [
+    "classmethod",
+]
+
+#! [tool.ruff.isort]
+#! known-first-party = ["src", "tests"]
