@@ -852,6 +852,17 @@ files = [
 ]
 
 [[package]]
+name = "objectlistview"
+version = "1.3.1"
+description = "An ObjectListView is a wrapper around the wx.ListCtrl that makes the list control easier to use"
+optional = false
+python-versions = "*"
+files = [
+    {file = "ObjectListView-1.3.1-py2.py3-none-any.whl", hash = "sha256:6dc412bc3f434f12c8be08bb80ea41560576958ed928b314c4b604f106ae87e1"},
+    {file = "ObjectListView-1.3.1.zip", hash = "sha256:ab97f8c291a0cc05c7df729490422e1bd8a88ca32882cb113c969f08021bea0d"},
+]
+
+[[package]]
 name = "packaging"
 version = "23.1"
 description = "Core utilities for Python packages"
@@ -1530,4 +1541,4 @@ six = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11, <4.0"
-content-hash = "721345abd9d3a7a3baa462aceae551246d5d650b7a98035e064207b7deb014a8"
+content-hash = "18407c6740c1ab67ce17eaa44d81e4d9ed958533b8b8a49399e0cff6c6d94714"
