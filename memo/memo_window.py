@@ -2,8 +2,8 @@
 
 import wx
 import wx.html2
+from ObjectListView import ObjectListView
 
-# bootstrap
 html_content = """<html>
 <head>
 <script src="
@@ -38,10 +38,7 @@ class MemoWindow(wx.Frame):
         self.panel = wx.Panel(self, wx.ID_ANY)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.list_memos = wx.ListCtrl(self.panel, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
-        self.list_memos.AppendColumn("A", format=wx.LIST_FORMAT_LEFT, width=-1)
-        self.list_memos.AppendColumn("B", format=wx.LIST_FORMAT_LEFT, width=-1)
-        self.list_memos.AppendColumn("C", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.list_memos = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
         sizer.Add(self.list_memos, 1, wx.EXPAND, 0)
 
         self.browser = wx.html2.WebView.New(self.panel, wx.ID_ANY, style=wx.BORDER_NONE)
