@@ -2,7 +2,7 @@
 
 import wx
 import wx.html2
-from ObjectListView import ObjectListView
+from ObjectListView import ColumnDefn, ObjectListView
 
 html_content = """<html>
 <head>
@@ -22,6 +22,18 @@ https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/css/bootstrap-dark.min.
 </html>"""
 
 
+memos_data = [
+    {
+        "title": "Memo 1",
+        "date": "2021-01-01",
+    },
+    {
+        "title": "Memo 2",
+        "date": "2021-01-02",
+    },
+]
+
+
 class MemoWindow(wx.Frame):
     """The main window of the memo application."""
 
@@ -39,6 +51,12 @@ class MemoWindow(wx.Frame):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.list_memos = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
+        self.list_memos.SetColumns(
+            [
+                ColumnDefn(title="Title", align="left", minimumWidth=500, valueGetter="title"),
+                ColumnDefn(title="Date", align="left", width=200, valueGetter="date"),
+            ]
+        )
         sizer.Add(self.list_memos, 1, wx.EXPAND, 0)
 
         self.browser = wx.html2.WebView.New(self.panel, wx.ID_ANY, style=wx.BORDER_NONE)
@@ -53,3 +71,5 @@ class MemoWindow(wx.Frame):
             html_content,
             "",
         )
+
+        self.list_memos.SetObjects(memos_data)
