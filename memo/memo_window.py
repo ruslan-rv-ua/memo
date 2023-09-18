@@ -4,23 +4,7 @@ import wx
 import wx.html2
 from ObjectListView import ColumnDefn, ObjectListView
 
-html_content = """<html>
-<head>
-<script src="
-https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/js/darkmode.min.js
-"></script>
-<link href="
-https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/css/bootstrap-dark.min.css
-" rel="stylesheet">
-</head>
-<body class="bg-gray-900 text-white">
-<h1>HTML Content</h1>
-<p>This is some HTML content</p>
-<a href="http://www.google.com">Google</a>
-<button class="btn btn-primary">Button</button>
-</body>
-</html>"""
-
+from templates import memo_template
 
 memos_data = [
     {
@@ -66,6 +50,12 @@ class MemoWindow(wx.Frame):
 
         self.Layout()
         self.Maximize()
+
+        from pathlib import Path
+
+        title = "Memo 1"
+        content = (Path(__file__).parent / "20230901153821.bookmark.md").read_text(encoding="utf-8")
+        html_content = memo_template.render(title=title, markdown_content=content)
 
         self.browser.SetPage(
             html_content,
