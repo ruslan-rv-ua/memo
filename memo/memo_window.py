@@ -1,12 +1,11 @@
 """This module contains the GUI for the memo application."""
 
 from gettext import gettext as _
+from pathlib import Path
 
 import wx
 import wx.html2
 from ObjectListView import ColumnDefn, ObjectListView
-
-from templates import memo_template
 
 
 class MemoWindow(wx.Frame):
@@ -16,6 +15,11 @@ class MemoWindow(wx.Frame):
         """Create a new memo window."""
         kwds["style"] = kwds.get("style", 0) | wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
+
+        self.init_ui()
+
+    def init_ui(self):
+        """Initialize the user interface."""
         self.SetTitle(_("Memo"))
 
         # Menu Bar
@@ -25,6 +29,7 @@ class MemoWindow(wx.Frame):
         self.panel = wx.Panel(self, wx.ID_ANY)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
+        # Left panel
         self.list_memos = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
         self.list_memos.SetColumns(
             [
@@ -34,24 +39,12 @@ class MemoWindow(wx.Frame):
         )
         sizer.Add(self.list_memos, 1, wx.EXPAND, 0)
 
-        self.browser = wx.html2.WebView.New(self.panel, wx.ID_ANY, style=wx.BORDER_NONE)
-        sizer.Add(self.browser, 1, wx.EXPAND, 0)
-
+        # Right panel - read-only text view
+        self.memo_view = wx.TextCtrl(self.panel, wx.ID_ANY, "", style=wx.TE_MULTILINE | wx.TE_READONLY)
         self.panel.SetSizer(sizer)
 
         self.Layout()
         self.Maximize()
-
-        from pathlib import Path
-
-        title = "Memo 1"
-        content = (Path(__file__).parent / "20230901153821.bookmark.md").read_text(encoding="utf-8")
-        html_content = memo_template.render(title=title, markdown_content=content)
-
-        self.browser.SetPage(
-            html_content,
-            "",
-        )
 
         from memobook import MemoBook
 
