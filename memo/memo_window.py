@@ -1,5 +1,7 @@
 """This module contains the GUI for the memo application."""
 
+from gettext import gettext as _
+
 import wx
 import wx.html2
 from ObjectListView import ColumnDefn, ObjectListView
@@ -14,7 +16,7 @@ class MemoWindow(wx.Frame):
         """Create a new memo window."""
         kwds["style"] = kwds.get("style", 0) | wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
-        self.SetTitle("Memo")
+        self.SetTitle(_("Memo"))
 
         # Menu Bar
         self.menubar = wx.MenuBar()
@@ -26,8 +28,8 @@ class MemoWindow(wx.Frame):
         self.list_memos = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
         self.list_memos.SetColumns(
             [
-                ColumnDefn(title="Title", align="left", minimumWidth=500, valueGetter="title"),
-                ColumnDefn(title="Date", align="left", width=200, valueGetter="date"),
+                ColumnDefn(title=_("Title"), align="left", minimumWidth=500, maximumWidth=500, valueGetter="title"),
+                ColumnDefn(title=_("Date"), align="left", width=200, valueGetter="date"),
             ]
         )
         sizer.Add(self.list_memos, 1, wx.EXPAND, 0)

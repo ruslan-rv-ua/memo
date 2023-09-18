@@ -1,5 +1,7 @@
 """The main application object for the memo application."""
 
+import gettext
+
 import wx
 
 from memo_window import MemoWindow
@@ -17,5 +19,7 @@ class MemoApp(wx.App):
 
 
 if __name__ == "__main__":
+    gettext.install("app")  # TODO: replace with the appropriate catalog name
+
     app = MemoApp(0)
     app.MainLoop()
