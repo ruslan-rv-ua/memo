@@ -6,17 +6,6 @@ from ObjectListView import ColumnDefn, ObjectListView
 
 from templates import memo_template
 
-memos_data = [
-    {
-        "title": "Memo 1",
-        "date": "2021-01-01",
-    },
-    {
-        "title": "Memo 2",
-        "date": "2021-01-02",
-    },
-]
-
 
 class MemoWindow(wx.Frame):
     """The main window of the memo application."""
@@ -62,4 +51,8 @@ class MemoWindow(wx.Frame):
             "",
         )
 
+        from memobook import MemoBook
+
+        memobook = MemoBook(Path(r"e:\dev\memo\test_memobook"))
+        memos_data = memobook.get_memos_list()
         self.list_memos.SetObjects(memos_data)

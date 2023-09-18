@@ -77,3 +77,6 @@ venv.bak/
 
 # IDEs
 .idea/
+
+# project exclusions
+test_memobook/
