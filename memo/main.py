@@ -4,7 +4,7 @@ import gettext
 
 import wx
 
-from memo_window import MemoWindow
+from memo_window import MemoBookWindow
 
 
 class MemoApp(wx.App):
@@ -12,7 +12,7 @@ class MemoApp(wx.App):
 
     def OnInit(self):  # noqa: N802
         """Create the main application window."""
-        self.frame = MemoWindow(None, wx.ID_ANY, "")
+        self.frame = MemoBookWindow()
         self.SetTopWindow(self.frame)
         self.frame.Show()
         return True

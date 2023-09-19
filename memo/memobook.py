@@ -16,19 +16,52 @@ class MemoType(str, Enum):
     NOTE = "note"
 
 
+class MemoView(str, Enum):
+    """The view of the memo."""
+
+    EDITOR = "editor"
+    WEB = "web"
+
+
+DEFAULT_MEMOBOOK_SETTINGS = {
+    "current_view": MemoView.WEB,
+    "editor": {
+        "font": {
+            "family": "Consolas",
+            "size": 12,
+        },
+    },
+}
+
+
+class MemoBookSettings(benedict):
+    """The settings of a memo book."""
+
+    def __init__(self, path: Path) -> None:
+        """Create or open the settings of a memo book at the given path."""
+        settings_path = path / ".settings"
+        if settings_path.exists():
+            super().__init__(str(settings_path), format="json", keypath_separator=None)
+        else:
+            super().__init__({})
+            self.update(DEFAULT_MEMOBOOK_SETTINGS)
+        self.__settings_path = settings_path
+        self.save()
+
+    def save(self):
+        """Save the settings."""
+        self.to_json(filepath=self.__settings_path, ensure_ascii=False, indent=4)  # TODO: no indent, no ensure_ascii
+
+
 class MemoBook:
     """A memo book."""
 
     def __init__(self, path: Path) -> None:
         """Create or open a memo book at the given path."""
         self._path = path
-        self._settings_path = path / ".settings"
         self._index_path = path / ".index"
 
-        if self._settings_path.exists():
-            self._settings = benedict(self._settings_path, format="json")
-        else:
-            self._settings = benedict()
+        self.settings = MemoBookSettings(path)
 
         if self._index_path.exists():
             self._index = benedict(self._index_path, format="json", keypath_separator=None)
@@ -40,11 +73,6 @@ class MemoBook:
     def path(self) -> Path:
         """The path to the memo book."""
         return self._path
-
-    @property
-    def settings(self) -> benedict:
-        """The settings of the memo book."""
-        return self._settings
 
     ########################################
     # Index
