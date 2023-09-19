@@ -40,11 +40,11 @@ class MemoBookWindow(wx.Frame):
 
         self.menu_view.AppendSeparator()
 
-        self.menu_view_editor = self.menu_view.AppendRadioItem(MENU_VIEW_EDITOR, _("Preview in editor\tCtrl+E"))
-        self.Bind(wx.EVT_MENU, self._on_view_editor, self.menu_view_editor)
+        self.menu_view_editor = self.menu_view.AppendRadioItem(MENU_VIEW_EDITOR, _("Preview as text\tCtrl+T"))
+        self.Bind(wx.EVT_MENU, self._on_text_preview, self.menu_view_editor)
 
-        self.menu_view_web = self.menu_view.AppendRadioItem(MENU_VIEW_WEB, _("Preview in web view\tCtrl+W"))
-        self.Bind(wx.EVT_MENU, self._on_view_web, self.menu_view_web)
+        self.menu_view_web = self.menu_view.AppendRadioItem(MENU_VIEW_WEB, _("Preview as web\tCtrl+W"))
+        self.Bind(wx.EVT_MENU, self._on_web_preview, self.menu_view_web)
 
         self.menubar.Append(self.menu_view, _("View"))
 
@@ -64,8 +64,10 @@ class MemoBookWindow(wx.Frame):
         self.search_sizer.Add(self.search_text, 1, wx.ALL | wx.EXPAND, 5)
         self.left_sizer = wx.BoxSizer(wx.VERTICAL)
         self.left_sizer.Add(self.search_sizer, 0, wx.ALL | wx.EXPAND, 5)
+
         self.list_memos = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT)
         self.list_memos.SetEmptyListMsg(_("No memos found"))
+        self.list_memos.Bind(wx.EVT_LIST_ITEM_SELECTED, self._on_item_selected)
         self.left_sizer.Add(self.list_memos, 1, wx.ALL | wx.EXPAND, 5)
 
         ############################################################ right part
@@ -106,9 +108,9 @@ class MemoBookWindow(wx.Frame):
         )
 
         if self.memobook.settings["current_view"] == MemoView.EDITOR:
-            self._show_editor()
+            self._set_text_preview()
         elif self.memobook.settings["current_view"] == MemoView.WEB:
-            self._show_web_view()
+            self._set_web_preview()
         else:
             from winsound import Beep  # TODO: remove this import
 
@@ -117,7 +119,7 @@ class MemoBookWindow(wx.Frame):
 
         self._update_memos()
 
-    def _show_editor(self):
+    def _set_text_preview(self):
         """Show the editor."""
         self.memobook.settings["current_view"] = MemoView.EDITOR
         self.memobook.settings.save()
@@ -125,8 +127,9 @@ class MemoBookWindow(wx.Frame):
         self.editor.Show()
         self.web_view.Hide()
         self.Layout()
+        self._update_preview()
 
-    def _show_web_view(self):
+    def _set_web_preview(self):
         """Show the web view."""
         self.memobook.settings["current_view"] = MemoView.WEB
         self.memobook.settings.save()
@@ -134,10 +137,26 @@ class MemoBookWindow(wx.Frame):
         self.editor.Hide()
         self.web_view.Show()
         self.Layout()
+        self._update_preview()
 
     def _update_memos(self):
         """Update the list of memos."""
         self.list_memos.SetObjects(self.memobook.get_memos_list())
+
+    def _update_preview(self):
+        """Show the selected memo in the preview."""
+        selected_memo = self.list_memos.GetSelectedObject()
+        if selected_memo:
+            if self.memobook.settings["current_view"] == MemoView.EDITOR:
+                self.editor.SetValue(self.memobook.get_memo_content(selected_memo["file_name"]))
+            elif self.memobook.settings["current_view"] == MemoView.WEB:
+                self.web_view.SetPage(self.memobook.get_memo_html(selected_memo["file_name"]), "")
+
+    ######################################## list events
+
+    def _on_item_selected(self, event):
+        """Update the preview when a memo is selected."""
+        self._update_preview()
 
     ######################################## menu events
 
@@ -149,12 +168,8 @@ class MemoBookWindow(wx.Frame):
         """Set the focus on the memos list."""
         self.list_memos.SetFocus()
 
-    def _on_view_editor(self, event):
-        """Show the editor."""
-        self.memobook.settings["current_view"] = MemoView.EDITOR
-        self._show_editor()
+    def _on_text_preview(self, event):
+        self._set_text_preview()
 
-    def _on_view_web(self, event):
-        """Show the web view."""
-        self.memobook.settings["current_view"] = MemoView.WEB
-        self._show_web_view()
+    def _on_web_preview(self, event):
+        self._set_web_preview()

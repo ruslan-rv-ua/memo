@@ -6,6 +6,8 @@ from pathlib import Path
 
 from benedict import benedict
 
+from templates import memo_template
+
 MEMOS_EXTENSIONS = ["md"]
 
 
@@ -134,3 +136,12 @@ class MemoBook:
         """Get a list of memos."""
         self._update_index()  # TODO: only update if necessary
         return list(self._index.values())
+
+    def get_memo_content(self, file_name: str):
+        """Get the content of the memo with the given file name."""
+        return (self._path / file_name).read_text(encoding="utf-8")
+
+    def get_memo_html(self, file_name: str):
+        """Get the html of the memo with the given file name."""
+        content = self.get_memo_content(file_name)
+        return memo_template.render(title=file_name, markdown_content=content)
