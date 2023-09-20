@@ -88,6 +88,7 @@ class MemoBookWindow(wx.Frame):
         )
 
         self._update_memos()
+        self._on_focus_memos_list(None)
 
     def _update_memos(self):
         """Update the list of memos."""
