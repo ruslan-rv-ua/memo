@@ -16,21 +16,16 @@ class MemoType(str, Enum):
     NOTE = "note"
 
 
-class MemoView(str, Enum):
-    """The view of the memo."""
-
-    EDITOR = "editor"
-    WEB = "web"
-
-
 DEFAULT_MEMOBOOK_SETTINGS = {
-    "current_view": MemoView.WEB,
-    "editor": {
-        "font": {
-            "family": "Consolas",
-            "size": 12,
+    "memos": {
+        "columns": {
+            "file_name": {"width": 0},
+            "title": {"width": 0},
+            "type": {"width": 0},
+            "date": {"width": 0},
         },
-    },
+        "sort": {"column": "date", "order": "desc"},
+    }
 }
 
 
@@ -134,3 +129,7 @@ class MemoBook:
         """Get a list of memos."""
         self._update_index()  # TODO: only update if necessary
         return list(self._index.values())
+
+    def get_memo_content(self, file_name: str):
+        """Get the content of a memo."""
+        return (self._path / file_name).read_text(encoding="utf-8")
