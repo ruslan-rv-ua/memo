@@ -129,3 +129,7 @@ class MemoBook:
         """Get a list of memos."""
         self._update_index()  # TODO: only update if necessary
         return list(self._index.values())
+
+    def get_memo_content(self, file_name: str):
+        """Get the content of a memo."""
+        return (self._path / file_name).read_text(encoding="utf-8")

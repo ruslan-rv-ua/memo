@@ -14,9 +14,9 @@ class Templates:
         self.path = path
         self.template = self.path.read_text(encoding="utf-8")
 
-    def render(self, title: str, markdown_content: str) -> str:
+    def render(self, markdown: str, title: str = "") -> str:
         """Render the template with the given title and content."""
-        content = markdowner.convert(markdown_content)
+        content = markdowner.convert(markdown)
         return self.template.format(title=title, content=content)
 
 
