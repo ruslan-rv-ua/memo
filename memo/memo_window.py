@@ -7,10 +7,7 @@ import wx
 import wx.html2
 from ObjectListView import ColumnDefn, ObjectListView
 
-from memobook import MemoBook, MemoView
-
-MENU_VIEW_EDITOR = wx.NewIdRef()
-MENU_VIEW_WEB = wx.NewIdRef()
+from memobook import MemoBook
 
 
 class MemoBookWindow(wx.Frame):
@@ -38,14 +35,6 @@ class MemoBookWindow(wx.Frame):
         self.menu_view_goto_list = self.menu_view.Append(wx.ID_ANY, _("Memos list\tCtrl+L"))
         self.Bind(wx.EVT_MENU, self._on_focus_memos_list, self.menu_view_goto_list)
 
-        self.menu_view.AppendSeparator()
-
-        self.menu_view_editor = self.menu_view.AppendRadioItem(MENU_VIEW_EDITOR, _("Preview in editor\tCtrl+E"))
-        self.Bind(wx.EVT_MENU, self._on_view_editor, self.menu_view_editor)
-
-        self.menu_view_web = self.menu_view.AppendRadioItem(MENU_VIEW_WEB, _("Preview in web view\tCtrl+W"))
-        self.Bind(wx.EVT_MENU, self._on_view_web, self.menu_view_web)
-
         self.menubar.Append(self.menu_view, _("View"))
 
     def init_ui(self):
@@ -70,16 +59,10 @@ class MemoBookWindow(wx.Frame):
 
         ############################################################ right part
 
-        # read-only editor, hidden by default
-        self.editor = wx.TextCtrl(self.panel, wx.ID_ANY, "", style=wx.TE_READONLY | wx.TE_MULTILINE)
-        self.editor.Hide()
-        # web view, hidden by default
         self.web_view = wx.html2.WebView.New(self.panel, wx.ID_ANY)
-        self.web_view.Hide()
 
         # add left and right parts to main sizer
         self.main_sizer.Add(self.left_sizer, 1, wx.ALL | wx.EXPAND, 5)
-        self.main_sizer.Add(self.editor, 1, wx.ALL | wx.EXPAND, 5)
         self.main_sizer.Add(self.web_view, 1, wx.ALL | wx.EXPAND, 5)
 
         # add main sizer to panel
@@ -99,41 +82,12 @@ class MemoBookWindow(wx.Frame):
 
         self.list_memos.SetColumns(  # TODO: read columns from settings
             [
-                ColumnDefn("", "center", 30, "type"),
                 ColumnDefn(_("Title"), "left", 500, "title"),
                 ColumnDefn(_("Created"), "left", 150, "date"),
             ]
         )
 
-        if self.memobook.settings["current_view"] == MemoView.EDITOR:
-            self._show_editor()
-        elif self.memobook.settings["current_view"] == MemoView.WEB:
-            self._show_web_view()
-        else:
-            from winsound import Beep  # TODO: remove this import
-
-            Beep(1000, 1000)
-            raise ValueError(f"Unknown view: {self.memobook.settings['current_view']}")
-
         self._update_memos()
-
-    def _show_editor(self):
-        """Show the editor."""
-        self.memobook.settings["current_view"] = MemoView.EDITOR
-        self.memobook.settings.save()
-        self.menu_view_editor.Check()
-        self.editor.Show()
-        self.web_view.Hide()
-        self.Layout()
-
-    def _show_web_view(self):
-        """Show the web view."""
-        self.memobook.settings["current_view"] = MemoView.WEB
-        self.memobook.settings.save()
-        self.menu_view_web.Check()
-        self.editor.Hide()
-        self.web_view.Show()
-        self.Layout()
 
     def _update_memos(self):
         """Update the list of memos."""
@@ -148,13 +102,3 @@ class MemoBookWindow(wx.Frame):
     def _on_focus_memos_list(self, event):
         """Set the focus on the memos list."""
         self.list_memos.SetFocus()
-
-    def _on_view_editor(self, event):
-        """Show the editor."""
-        self.memobook.settings["current_view"] = MemoView.EDITOR
-        self._show_editor()
-
-    def _on_view_web(self, event):
-        """Show the web view."""
-        self.memobook.settings["current_view"] = MemoView.WEB
-        self._show_web_view()

@@ -16,21 +16,16 @@ class MemoType(str, Enum):
     NOTE = "note"
 
 
-class MemoView(str, Enum):
-    """The view of the memo."""
-
-    EDITOR = "editor"
-    WEB = "web"
-
-
 DEFAULT_MEMOBOOK_SETTINGS = {
-    "current_view": MemoView.WEB,
-    "editor": {
-        "font": {
-            "family": "Consolas",
-            "size": 12,
+    "memos": {
+        "columns": {
+            "file_name": {"width": 0},
+            "title": {"width": 0},
+            "type": {"width": 0},
+            "date": {"width": 0},
         },
-    },
+        "sort": {"column": "date", "order": "desc"},
+    }
 }
 
 
