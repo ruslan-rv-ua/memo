@@ -3,7 +3,19 @@ from pathlib import Path
 
 from markdown2 import Markdown
 
-markdowner = Markdown(extras=["fenced-code-blocks", "tables"])
+markdowner = Markdown(
+    extras=[
+        "toc",
+        "metadata ",
+        "break-on-newline",
+        "code-friendly",
+        "fenced-code-blocks",
+        "target-blank-links",
+        "tables",
+        "tag-friendly",
+        "task_list",
+    ]
+)
 
 
 class Templates:
