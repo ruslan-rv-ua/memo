@@ -1,5 +1,6 @@
 """The memo module."""
 
+from datetime import datetime
 from pathlib import Path
 
 MAX_FILENAME_LENGTH = 200
@@ -39,10 +40,13 @@ class Memo:
             return self.lines[0].lstrip("# ")
         return ""
 
-    def make_filename(self):
+    def make_filename(self, with_timestamp=False):
         """Make a filename from the title of the memo.
 
         The filename is a valid filename without extension.
+
+        Args:
+            with_timestamp (bool): if True, the current timestamp is added to the filename.
 
         Returns:
             str: the filename.
@@ -57,6 +61,9 @@ class Memo:
             filename = " ".join(filename.split()[:-1])
         if len(filename) > MAX_FILENAME_LENGTH:
             filename = filename[:MAX_FILENAME_LENGTH]
+        # add timestamp
+        if with_timestamp:
+            filename += datetime.now().strftime("-%Y-%m-%d-%H-%M-%S")  # noqa: DTZ005
         return filename
 
     def _find_hashtags_line_index(self):
