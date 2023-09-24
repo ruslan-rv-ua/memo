@@ -7,7 +7,6 @@ markdowner = Markdown(
     extras=[
         "toc",
         "metadata ",
-        "break-on-newline",
         "code-friendly",
         "fenced-code-blocks",
         "target-blank-links",
