@@ -1,20 +1,12 @@
 """A memo book."""
 
 from datetime import datetime
-from enum import Enum
 from pathlib import Path
 
 from benedict import benedict
 
-MEMOS_EXTENSIONS = ["md"]
-
-
-class MemoType(str, Enum):
-    """The type of a memo."""
-
-    BOOKMARK = "bookmark"
-    NOTE = "note"
-
+from memo_item import Memo
+from utils import make_filename_from_string
 
 DEFAULT_MEMOBOOK_SETTINGS = {
     "memos": {
@@ -54,15 +46,8 @@ class MemoBook:
     def __init__(self, path: Path) -> None:
         """Create or open a memo book at the given path."""
         self._path = path
-        self._index_path = path / ".index"
 
         self.settings = MemoBookSettings(path)
-
-        if self._index_path.exists():
-            self._index = benedict(self._index_path, format="json", keypath_separator=None)
-        else:
-            self._index = benedict(keypath_separator=None)
-        self._update_index()
 
     @property
     def path(self) -> Path:
@@ -70,66 +55,36 @@ class MemoBook:
         return self._path
 
     ########################################
-    # Index
+    # Memos
     ########################################
 
-    def _remove_missing_files_from_index(self):
-        for file_name in set(self._index):
-            if not (self._path / file_name).exists():
-                del self._index[file_name]
-
-    def _add_new_files_to_index(self):
-        for file_path in self._path.glob(f"*.{'|'.join(MEMOS_EXTENSIONS)}"):
-            if file_path.name not in self._index:
-                self._add_file_to_index(file_path)
-
-    def _update_index(self):
-        self._remove_missing_files_from_index()
-        self._add_new_files_to_index()
-        self._index.to_json(filepath=self._index_path, ensure_ascii=False, indent=4)  # TODO: no indent, no ensure_ascii
-
-    def _add_file_to_index(self, file_path: Path):
-        # get first line as title
-        with file_path.open(encoding="utf-8") as f:
-            title = f.readline().strip("#").strip()  # strip # and whitespace
-        # get file extension as type
-        memo_type = MemoType(file_path.suffixes[-2].strip("."))
-        # get datetime from file name e.g. 20130920132804.bookmark.md
-        dt_str = file_path.name.strip(".")[0:14]
-        created_at = datetime.strptime(dt_str, "%Y%m%d%H%M%S")  # noqa: DTZ007
-        # add to index
-        self._index[file_path.name] = {
-            "file_name": file_path.name,
-            "title": title,
-            "type": memo_type,
-            "date": created_at,
-        }
-
-    ########################################
-    # Memo
-    ########################################
-
-    def add_memo(self, markdown: str, memo_type: MemoType):
+    def add_memo(self, markdown: str, title: str = "", add_date_hashtag: bool = True, extra_hashtags=None):
         """Add a new memo to the memo book."""
-        # create file name based on current datetime and type
-        while True:
-            now = datetime.now()  # noqa: DTZ005
-            file_name = f"{now:%Y%m%d%H%M%S}.{memo_type.value}.md"
-            file_path = self._path / file_name
-            if not file_path.exists():
-                break
-        # write content to file
-        file_path.write_text(markdown, encoding="utf-8")
-        # update index
-        self._add_file_to_index(file_path)
-        # save index
-        self._index_path.write_text(self._index.to_json(), encoding="utf-8")
+        memo = Memo(markdown)
 
-    def get_memos_list(self):
-        """Get a list of memos."""
-        self._update_index()  # TODO: only update if necessary
-        return list(self._index.values())
+        # set hashtags
+        hashtags = set()
+        if add_date_hashtag:
+            hashtags.add(datetime.now().strftime("%Y-%m-%d"))  # noqa: DTZ005
+        if extra_hashtags:
+            hashtags.update(set(extra_hashtags))
+        if hashtags:
+            memo.update_hashtags(hashtags)
 
-    def get_memo_content(self, file_name: str):
-        """Get the content of a memo."""
-        return (self._path / file_name).read_text(encoding="utf-8")
+        # file name
+        string_for_filename = title or memo.title
+        file_name = make_filename_from_string(string_for_filename)
+        file_path = self._path / f"{file_name}.md"
+        if file_path.exists():
+            # add timestamp to the file name
+            file_name = make_filename_from_string(string_for_filename, with_timestamp=True)
+            file_path = self._path / f"{file_name}.md"
+        memo.save(file_path)
+
+    def get_memo(self, file_name: str) -> Memo:
+        """Get a memo from the memo book."""
+        return Memo.from_path(self._path / file_name)
+
+    def get_memos_file_names(self) -> list:
+        """Get the file names of all memos in the memo book."""
+        return [file.name for file in self._path.glob("*.md")]

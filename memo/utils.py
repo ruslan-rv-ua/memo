@@ -1,9 +1,13 @@
 """Utility functions for the memo package."""
 
-import re
+import re  # TODO: do not use regex
 import urllib.parse
+from datetime import datetime
 
 from html2text import HTML2Text
+
+MAX_FILENAME_LENGTH = 200
+
 
 html2text_converter = HTML2Text()
 html2text_converter.unicode_snob = True
@@ -67,3 +71,31 @@ def get_domain(url: str) -> str:
 def get_page_markdown(html: str) -> str:
     """Get the markdown of the given HTML."""
     return html2text_converter.handle(html)
+
+
+def make_filename_from_string(from_string, with_timestamp=False):
+    """Make a filename from the given string.
+
+    The filename is a valid filename without extension.
+
+    Args:
+        from_string (str): the string to make the filename from.
+        with_timestamp (bool): if True, the current timestamp is added to the filename.
+
+    Returns:
+        str: the filename.
+    """
+    # filter out invalid characters
+    filename = "".join(c for c in from_string if c.isalnum() or c in "._- ()")
+    # strip spaces and dots
+    filename = filename.strip(" .")
+    # limit the filename length
+    # delete last word until the filename is short enough
+    while len(filename.split()) > 1 and len(filename) > MAX_FILENAME_LENGTH:
+        filename = " ".join(filename.split()[:-1])
+    if len(filename) > MAX_FILENAME_LENGTH:
+        filename = filename[:MAX_FILENAME_LENGTH]
+    # add timestamp
+    if with_timestamp:
+        filename += datetime.now().strftime("-%Y-%m-%d-%H-%M-%S")  # noqa: DTZ005
+    return filename

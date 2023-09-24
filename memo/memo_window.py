@@ -7,7 +7,7 @@ import wx
 import wx.html2
 from ObjectListView import ColumnDefn, ObjectListView
 
-from memobook import MemoBook, MemoType
+from memobook import MemoBook
 from templates import memo_template
 from utils import get_domain, get_page_description, get_page_html, get_page_markdown, get_page_title, is_valid_http_url
 
@@ -99,23 +99,23 @@ class MemoBookWindow(wx.Frame):
         """Open the memobook at the given path."""
         self.memobook = MemoBook(memobook_path)
 
-        self.list_memos.SetColumns(  # TODO: read columns from settings
+        self.list_memos.SetColumns(
             [
-                ColumnDefn(_("Title"), "left", 500, "title"),
-                ColumnDefn(_("Created"), "left", 150, "date"),
+                ColumnDefn(_("Memo"), "left", 500, "file_name"),
             ]
         )
 
         self._update_memos()
         self._focus_list_memos()
         # focus first memo if any
-        if self.memobook.get_memos_list():
+        if self.list_memos.GetItemCount() > 0:
             self.list_memos.Select(0)
             self.list_memos.Focus(0)
 
     def _update_memos(self):
         """Update the list of memos."""
-        self.list_memos.SetObjects(self.memobook.get_memos_list())
+        objects = [{"file_name": file} for file in self.memobook.get_memos_file_names()]
+        self.list_memos.SetObjects(objects)  # TODO: optimize performance
 
     def _focus_search_text(self):
         """Set the focus on the search text."""
@@ -172,14 +172,17 @@ class MemoBookWindow(wx.Frame):
             page_description = ""
             page_markdown = ""
 
-        markdown = f"# {page_title} ({domain})\n\n" if page_title else f"# {domain}\n\n"
-        markdown += f"<{url}>\n\n"
+        memo_title = f"{page_title} ({domain})" if page_title else domain
+        markdown = ""
         if page_description:
             markdown += f"{page_description}\n\n"
-        markdown += page_markdown
+        markdown += page_markdown.strip()
+        markdown += f"\n\n---\n\n<{url}>"
 
         # add bookmark
-        self.memobook.add_memo(markdown=markdown, memo_type=MemoType.BOOKMARK)
+        self.memobook.add_memo(
+            markdown=markdown, title=memo_title, add_date_hashtag=False, extra_hashtags=["#bookmark"]
+        )
 
         return True
 
@@ -202,14 +205,16 @@ class MemoBookWindow(wx.Frame):
         self._add_bookmark()
         self._update_memos()
         # focus last added bookmark
-        self.list_memos.Select(len(self.memobook.get_memos_list()) - 1)
-        self.list_memos.Focus(len(self.memobook.get_memos_list()) - 1)
+        last_item_index = self.list_memos.GetItemCount() - 1
+        self.list_memos.Select(last_item_index)
+        self.list_memos.Focus(last_item_index)
 
     ######################################## list events
 
     def _on_select_memo(self, event):
         """Select a memo."""
-        memo = event.GetEventObject().GetSelectedObject()
-        markdown = self.memobook.get_memo_content(memo["file_name"])
-        html = memo_template.render(markdown=markdown, title=memo["title"])
+        item = event.GetEventObject().GetSelectedObject()
+        memo = self.memobook.get_memo(item["file_name"])
+        markdown = memo.content
+        html = memo_template.render(markdown=markdown, title=item["file_name"])
         self.web_view.SetPage(html, "")
