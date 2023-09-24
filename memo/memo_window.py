@@ -172,14 +172,17 @@ class MemoBookWindow(wx.Frame):
             page_description = ""
             page_markdown = ""
 
-        markdown = f"# {page_title} ({domain})\n\n" if page_title else f"# {domain}\n\n"
-        markdown += f"<{url}>\n\n"
+        memo_title = f"{page_title} ({domain})" if page_title else domain
+        markdown = ""
         if page_description:
             markdown += f"{page_description}\n\n"
-        markdown += page_markdown
+        markdown += page_markdown.strip()
+        markdown += f"\n\n---\n\n<{url}>"
 
         # add bookmark
-        self.memobook.add_memo(markdown=markdown)
+        self.memobook.add_memo(
+            markdown=markdown, title=memo_title, add_date_hashtag=False, extra_hashtags=["#bookmark"]
+        )
 
         return True
 
@@ -202,8 +205,9 @@ class MemoBookWindow(wx.Frame):
         self._add_bookmark()
         self._update_memos()
         # focus last added bookmark
-        self.list_memos.Select(len(self.memobook.get_memos_list()) - 1)
-        self.list_memos.Focus(len(self.memobook.get_memos_list()) - 1)
+        last_item_index = self.list_memos.GetItemCount() - 1
+        self.list_memos.Select(last_item_index)
+        self.list_memos.Focus(last_item_index)
 
     ######################################## list events
 

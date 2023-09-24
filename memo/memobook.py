@@ -6,6 +6,7 @@ from pathlib import Path
 from benedict import benedict
 
 from memo_item import Memo
+from utils import make_filename_from_string
 
 DEFAULT_MEMOBOOK_SETTINGS = {
     "memos": {
@@ -57,7 +58,7 @@ class MemoBook:
     # Memos
     ########################################
 
-    def add_memo(self, markdown: str, add_date_hashtag: bool = True, extra_hashtags=None):
+    def add_memo(self, markdown: str, title: str = "", add_date_hashtag: bool = True, extra_hashtags=None):
         """Add a new memo to the memo book."""
         memo = Memo(markdown)
 
@@ -71,12 +72,13 @@ class MemoBook:
             memo.update_hashtags(hashtags)
 
         # file name
-        file_name = memo.make_filename()
-        file_path = self._path / file_name
+        string_for_filename = title or memo.title
+        file_name = make_filename_from_string(string_for_filename)
+        file_path = self._path / f"{file_name}.md"
         if file_path.exists():
             # add timestamp to the file name
-            file_name = memo.make_filename(with_timestamp=True)
-            file_path = self._path / file_name
+            file_name = make_filename_from_string(string_for_filename, with_timestamp=True)
+            file_path = self._path / f"{file_name}.md"
         memo.save(file_path)
 
     def get_memo(self, file_name: str) -> Memo:

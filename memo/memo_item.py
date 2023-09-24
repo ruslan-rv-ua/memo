@@ -1,9 +1,6 @@
 """The memo module."""
 
-from datetime import datetime
 from pathlib import Path
-
-MAX_FILENAME_LENGTH = 200
 
 
 class Memo:
@@ -40,32 +37,6 @@ class Memo:
             return self.lines[0].lstrip("# ")
         return ""
 
-    def make_filename(self, with_timestamp=False):
-        """Make a filename from the title of the memo.
-
-        The filename is a valid filename without extension.
-
-        Args:
-            with_timestamp (bool): if True, the current timestamp is added to the filename.
-
-        Returns:
-            str: the filename.
-        """
-        # filter out invalid characters
-        filename = "".join(c for c in self.title if c.isalnum() or c in "._- ()")
-        # strip spaces and dots
-        filename = filename.strip(" .")
-        # limit the filename length
-        # delete last word until the filename is short enough
-        while len(filename.split()) > 1 and len(filename) > MAX_FILENAME_LENGTH:
-            filename = " ".join(filename.split()[:-1])
-        if len(filename) > MAX_FILENAME_LENGTH:
-            filename = filename[:MAX_FILENAME_LENGTH]
-        # add timestamp
-        if with_timestamp:
-            filename += datetime.now().strftime("-%Y-%m-%d-%H-%M-%S")  # noqa: DTZ005
-        return filename
-
     def _find_hashtags_line_index(self):
         """Find the index of the line that contains only hashtags.
 
@@ -77,7 +48,7 @@ class Memo:
         # beckward search
         for i in range(len(self._lines) - 1, -1, -1):
             # all words in the line must start with #
-            if all(word.startswith("#") for word in self.lines[i].strip().split()):
+            if all(word.startswith("#") for word in self._lines[i].strip().split()):
                 return i
         return -1
 
@@ -96,7 +67,7 @@ class Memo:
         Returns:
             set: the list of hashtags.
         """
-        index = self._find_hashtags_line_index(self._lines)
+        index = self._find_hashtags_line_index()
         if index >= 0:
             # get the hashtags from the line
             return set(self._lines[index].strip().split())
