@@ -30,7 +30,7 @@ class Memo:
     @property
     def content(self):
         """Get the content of the memo."""
-        return "\n".join(self.lines)
+        return "\n".join(self._lines)
 
     @property
     def title(self):

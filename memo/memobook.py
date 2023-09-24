@@ -5,7 +5,7 @@ from pathlib import Path
 
 from benedict import benedict
 
-from .memo import Memo
+from memo_item import Memo
 
 DEFAULT_MEMOBOOK_SETTINGS = {
     "memos": {

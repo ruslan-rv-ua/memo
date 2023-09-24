@@ -7,7 +7,7 @@ import wx
 import wx.html2
 from ObjectListView import ColumnDefn, ObjectListView
 
-from memobook import MemoBook, MemoType
+from memobook import MemoBook
 from templates import memo_template
 from utils import get_domain, get_page_description, get_page_html, get_page_markdown, get_page_title, is_valid_http_url
 
@@ -99,23 +99,23 @@ class MemoBookWindow(wx.Frame):
         """Open the memobook at the given path."""
         self.memobook = MemoBook(memobook_path)
 
-        self.list_memos.SetColumns(  # TODO: read columns from settings
+        self.list_memos.SetColumns(
             [
-                ColumnDefn(_("Title"), "left", 500, "title"),
-                ColumnDefn(_("Created"), "left", 150, "date"),
+                ColumnDefn(_("Memo"), "left", 500, "file_name"),
             ]
         )
 
         self._update_memos()
         self._focus_list_memos()
         # focus first memo if any
-        if self.memobook.get_memos_list():
+        if self.list_memos.GetItemCount() > 0:
             self.list_memos.Select(0)
             self.list_memos.Focus(0)
 
     def _update_memos(self):
         """Update the list of memos."""
-        self.list_memos.SetObjects(self.memobook.get_memos_list())
+        objects = [{"file_name": file} for file in self.memobook.get_memos_file_names()]
+        self.list_memos.SetObjects(objects)  # TODO: optimize performance
 
     def _focus_search_text(self):
         """Set the focus on the search text."""
@@ -179,7 +179,7 @@ class MemoBookWindow(wx.Frame):
         markdown += page_markdown
 
         # add bookmark
-        self.memobook.add_memo(markdown=markdown, memo_type=MemoType.BOOKMARK)
+        self.memobook.add_memo(markdown=markdown)
 
         return True
 
@@ -209,7 +209,8 @@ class MemoBookWindow(wx.Frame):
 
     def _on_select_memo(self, event):
         """Select a memo."""
-        memo = event.GetEventObject().GetSelectedObject()
-        markdown = self.memobook.get_memo_content(memo["file_name"])
-        html = memo_template.render(markdown=markdown, title=memo["title"])
+        item = event.GetEventObject().GetSelectedObject()
+        memo = self.memobook.get_memo(item["file_name"])
+        markdown = memo.content
+        html = memo_template.render(markdown=markdown, title=item["file_name"])
         self.web_view.SetPage(html, "")
