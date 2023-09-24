@@ -7,8 +7,9 @@ import wx
 import wx.html2
 from ObjectListView import ColumnDefn, ObjectListView
 
-from memobook import MemoBook
+from memobook import MemoBook, MemoType
 from templates import memo_template
+from utils import get_domain, get_page_description, get_page_html, get_page_markdown, get_page_title, is_valid_http_url
 
 
 class MemoBookWindow(wx.Frame):
@@ -40,6 +41,17 @@ class MemoBookWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self._on_focus_web_view, self.menu_view_goto_web_view)
 
         self.menubar.Append(self.menu_view, _("View"))
+
+        # Memo menu
+        self.menu_memo = wx.Menu()
+
+        self.menu_memo_add_bookmark = self.menu_memo.Append(wx.ID_ANY, _("Add bookmark\tCtrl+B"))
+        self.Bind(wx.EVT_MENU, self._on_add_bookmark, self.menu_memo_add_bookmark)
+
+        self.menu_memo_add_memo = self.menu_memo.Append(wx.ID_ANY, _("Add memo\tCtrl+M"))
+        self.Bind(wx.EVT_MENU, self._on_add_memo, self.menu_memo_add_memo)
+
+        self.menubar.Append(self.menu_memo, _("Memo"))
 
     def init_ui(self):
         """Initialize the user interface."""
@@ -96,6 +108,10 @@ class MemoBookWindow(wx.Frame):
 
         self._update_memos()
         self._focus_list_memos()
+        # focus first memo if any
+        if self.memobook.get_memos_list():
+            self.list_memos.Select(0)
+            self.list_memos.Focus(0)
 
     def _update_memos(self):
         """Update the list of memos."""
@@ -113,6 +129,60 @@ class MemoBookWindow(wx.Frame):
         """Set the focus on the web view."""
         self.web_view.SetFocus()
 
+    ##### memo
+
+    def _add_memo(self):
+        pass
+
+    def _add_bookmark(self) -> bool:
+        """Add a bookmark.
+
+        Returns:
+            True if the bookmark was added, False otherwise.
+        """
+        # ask bookmark's URL
+        url = wx.GetTextFromUser(_("Enter the URL of the bookmark"), _("Add bookmark"), "")
+        if not url:
+            return False
+        # validate URL
+        if not is_valid_http_url(url):
+            wx.MessageBox(_("Invalid URL"), _("Error"), wx.OK | wx.ICON_ERROR)
+            return False
+
+        page_html = get_page_html(url)
+        # ask user to add bookmark anyway
+        if (
+            not page_html
+            and wx.MessageBox(
+                _("The URL is unreachable. Do you want to add it anyway?"),
+                _("Warning"),
+                wx.YES_NO | wx.ICON_WARNING,
+            )
+            != wx.YES
+        ):
+            return False
+
+        domain = get_domain(url)
+        if page_html:
+            page_title = get_page_title(page_html)
+            page_description = get_page_description(page_html)
+            page_markdown = get_page_markdown(page_html)
+        else:
+            page_title = ""
+            page_description = ""
+            page_markdown = ""
+
+        markdown = f"# {page_title} ({domain})\n\n" if page_title else f"# {domain}\n\n"
+        markdown += f"<{url}>\n\n"
+        if page_description:
+            markdown += f"{page_description}\n\n"
+        markdown += page_markdown
+
+        # add bookmark
+        self.memobook.add_memo(markdown=markdown, memo_type=MemoType.BOOKMARK)
+
+        return True
+
     ######################################## menu events
 
     def _on_focus_quick_search(self, event):
@@ -123,6 +193,17 @@ class MemoBookWindow(wx.Frame):
 
     def _on_focus_web_view(self, event):
         self._focus_web_view()
+
+    def _on_add_memo(self, event):
+        self._add_memo()
+        self._update_memos()
+
+    def _on_add_bookmark(self, event):
+        self._add_bookmark()
+        self._update_memos()
+        # focus last added bookmark
+        self.list_memos.Select(len(self.memobook.get_memos_list()) - 1)
+        self.list_memos.Focus(len(self.memobook.get_memos_list()) - 1)
 
     ######################################## list events
 

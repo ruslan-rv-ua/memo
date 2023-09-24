@@ -109,7 +109,7 @@ class MemoBook:
     # Memo
     ########################################
 
-    def add_memo(self, content: str, memo_type: MemoType):
+    def add_memo(self, markdown: str, memo_type: MemoType):
         """Add a new memo to the memo book."""
         # create file name based on current datetime and type
         while True:
@@ -119,7 +119,7 @@ class MemoBook:
             if not file_path.exists():
                 break
         # write content to file
-        file_path.write_text(content, encoding="utf-8")
+        file_path.write_text(markdown, encoding="utf-8")
         # update index
         self._add_file_to_index(file_path)
         # save index

@@ -1,13 +1,5 @@
-        self.browser = wx.html2.WebView.New(self.panel, wx.ID_ANY, style=wx.BORDER_NONE)
-        sizer.Add(self.browser, 1, wx.EXPAND, 0)
-
-        from pathlib import Path
-
-        title = "Memo 1"
-        content = (Path(__file__).parent / "20230901153821.bookmark.md").read_text(encoding="utf-8")
-        html_content = memo_template.render(title=title, markdown_content=content)
-
-        self.browser.SetPage(
-            html_content,
-            "",
-        )
+- readability
+- error 403 forbiden
+    https://medium.com/@mike.p.moritz/using-docker-compose-to-deploy-a-lightweight-python-rest-api-with-a-job-queue-37e6072a209b
+- link in bookmark
+- keys in preview
