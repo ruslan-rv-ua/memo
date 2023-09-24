@@ -95,6 +95,9 @@ def make_filename_from_string(from_string, with_timestamp=False):
         filename = " ".join(filename.split()[:-1])
     if len(filename) > MAX_FILENAME_LENGTH:
         filename = filename[:MAX_FILENAME_LENGTH]
+    # remove consecutive spaces
+    filename = " ".join(filename.split())
+
     # add timestamp
     if with_timestamp:
         filename += datetime.now().strftime("-%Y-%m-%d-%H-%M-%S")  # noqa: DTZ005

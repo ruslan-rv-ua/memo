@@ -32,9 +32,9 @@ class Memo:
     @property
     def title(self):
         """Get the title of the memo."""
-        if self.lines:
+        if self._lines:
             # first line without markdown syntax
-            return self.lines[0].lstrip("# ")
+            return self._lines[0].lstrip("# ")
         return ""
 
     def _find_hashtags_line_index(self):

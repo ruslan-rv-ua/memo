@@ -7,6 +7,7 @@ import wx
 import wx.html2
 from ObjectListView import ColumnDefn, ObjectListView
 
+from editor_window import EditorDialog
 from memobook import MemoBook
 from templates import memo_template
 from utils import get_domain, get_page_description, get_page_html, get_page_markdown, get_page_title, is_valid_http_url
@@ -45,11 +46,14 @@ class MemoBookWindow(wx.Frame):
         # Memo menu
         self.menu_memo = wx.Menu()
 
+        self.menu_memo_add_memo = self.menu_memo.Append(wx.ID_ANY, _("Add memo\tCtrl+M"))
+        self.Bind(wx.EVT_MENU, self._on_add_memo, self.menu_memo_add_memo)
+
         self.menu_memo_add_bookmark = self.menu_memo.Append(wx.ID_ANY, _("Add bookmark\tCtrl+B"))
         self.Bind(wx.EVT_MENU, self._on_add_bookmark, self.menu_memo_add_bookmark)
 
-        self.menu_memo_add_memo = self.menu_memo.Append(wx.ID_ANY, _("Add memo\tCtrl+M"))
-        self.Bind(wx.EVT_MENU, self._on_add_memo, self.menu_memo_add_memo)
+        self.menu_memo_edit_memo = self.menu_memo.Append(wx.ID_ANY, _("Edit memo\tF4"))
+        self.Bind(wx.EVT_MENU, self._on_edit_memo, self.menu_memo_edit_memo)
 
         self.menubar.Append(self.menu_memo, _("Memo"))
 
@@ -101,7 +105,9 @@ class MemoBookWindow(wx.Frame):
 
         self.list_memos.SetColumns(
             [
-                ColumnDefn(_("Memo"), "left", 500, "file_name"),
+                ColumnDefn(
+                    _("Memo"), "left", 500, "file_name", stringConverter=lambda file_name: file_name[:-3]
+                ),  # remove ".md"
             ]
         )
 
@@ -132,7 +138,21 @@ class MemoBookWindow(wx.Frame):
     ##### memo
 
     def _add_memo(self):
-        pass
+        """Add a memo."""
+        edit_dlg = EditorDialog(parent=self, title=_("Add memo"), value="")
+        if edit_dlg.ShowModal() != wx.ID_OK:
+            return
+        markdown = edit_dlg.value
+        self.memobook.add_memo(markdown=markdown, add_date_hashtag=True)
+
+    def _edit_memo(self, file_name: str):
+        """Edit a memo."""
+        memo = self.memobook.get_memo(file_name)
+        edit_dlg = EditorDialog(parent=self, title=_("Edit memo"), value=memo.content)
+        if edit_dlg.ShowModal() != wx.ID_OK:
+            return
+        markdown = edit_dlg.value
+        self.memobook.update_memo(file_name, markdown=markdown)
 
     def _add_bookmark(self) -> bool:
         """Add a bookmark.
@@ -208,6 +228,14 @@ class MemoBookWindow(wx.Frame):
         last_item_index = self.list_memos.GetItemCount() - 1
         self.list_memos.Select(last_item_index)
         self.list_memos.Focus(last_item_index)
+
+    def _on_edit_memo(self, event):
+        selected_item_index = self.list_memos.GetFirstSelected()
+        if selected_item_index == -1:
+            return
+        item = self.list_memos.GetSelectedObject()
+        self._edit_memo(item["file_name"])
+        self._update_memos()
 
     ######################################## list events
 

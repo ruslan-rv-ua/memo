@@ -65,7 +65,7 @@ class MemoBook:
         # set hashtags
         hashtags = set()
         if add_date_hashtag:
-            hashtags.add(datetime.now().strftime("%Y-%m-%d"))  # noqa: DTZ005
+            hashtags.add(datetime.now().strftime("#%Y-%m-%d"))  # noqa: DTZ005
         if extra_hashtags:
             hashtags.update(set(extra_hashtags))
         if hashtags:
@@ -80,6 +80,12 @@ class MemoBook:
             file_name = make_filename_from_string(string_for_filename, with_timestamp=True)
             file_path = self._path / f"{file_name}.md"
         memo.save(file_path)
+
+    def update_memo(self, file_name: str, markdown: str):
+        """Update a memo in the memo book."""
+        path = self._path / file_name
+        memo = Memo(markdown)
+        memo.save(path)
 
     def get_memo(self, file_name: str) -> Memo:
         """Get a memo from the memo book."""
