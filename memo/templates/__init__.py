@@ -25,10 +25,10 @@ class Templates:
         self.path = path
         self.template = self.path.read_text(encoding="utf-8")
 
-    def render(self, markdown: str, title: str = "") -> str:
+    def render(self, markdown: str) -> str:
         """Render the template with the given title and content."""
         content = markdowner.convert(markdown)
-        return self.template.format(title=title, content=content)
+        return self.template.replace("{{content}}", content)
 
 
 memo_template = Templates(Path(__file__).parent / "memo.html")
