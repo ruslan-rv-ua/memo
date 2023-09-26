@@ -1,9 +1,8 @@
-- reset search results
+- readability
 - focus on created memo
 - requests-html
 - error 403 forbiden
     https://medium.com/@mike.p.moritz/using-docker-compose-to-deploy-a-lightweight-python-rest-api-with-a-job-queue-37e6072a209b
-- readability
 - WebView
     - TAB_TRAVERSAL
     - activate link

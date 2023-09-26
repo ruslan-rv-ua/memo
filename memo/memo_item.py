@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+HASHTAGS_LINE_PREFIX = "Hashtags: "
+
 
 class Memo:
     """A memo.
@@ -40,15 +42,14 @@ class Memo:
     def _find_hashtags_line_index(self):
         """Find the index of the line that contains only hashtags.
 
-        The line must contain only hashtags and spaces.
+        The line must start with HASHTAGS_LINE_PREFIX.
 
         Returns:
             int: the index of the line that contains only hashtags or -1 if not found.
         """
         # beckward search
         for i in range(len(self._lines) - 1, -1, -1):
-            # all words in the line must start with #
-            if all(word.startswith("#") for word in self._lines[i].strip().split()):
+            if self._lines[i].startswith(HASHTAGS_LINE_PREFIX):
                 return i
         return -1
 
@@ -70,7 +71,7 @@ class Memo:
         index = self._find_hashtags_line_index()
         if index >= 0:
             # get the hashtags from the line
-            return set(self._lines[index].strip().split())
+            return set(self._lines[index][len(HASHTAGS_LINE_PREFIX) :].split())
         return set()
 
     def set_hashtags(self, hashtags):
@@ -79,6 +80,8 @@ class Memo:
         Args:
             hashtags: the list of hashtags.
         """
+        # all hashtags to lowercase
+        hashtags = [hashtag.lower() for hashtag in hashtags]
         index = self._find_hashtags_line_index()
         if index < 0:
             # add new line
@@ -88,7 +91,7 @@ class Memo:
             self._lines.append("")
             index = len(self._lines) - 1
         # add hashtags line
-        self._lines[index] = " ".join(sorted(set(hashtags)))
+        self._lines[index] = HASHTAGS_LINE_PREFIX + " ".join(sorted(hashtags))
 
     def update_hashtags(self, hashtags):
         """Update the hashtags of the memo.
