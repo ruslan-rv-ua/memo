@@ -57,6 +57,9 @@ class MemoBookWindow(wx.Frame):
         self.menu_memo_edit_memo = self.menu_memo.Append(wx.ID_ANY, _("Edit memo\tF4"))
         self.Bind(wx.EVT_MENU, self._on_edit_memo, self.menu_memo_edit_memo)
 
+        self.menu_memo_delete_memos = self.menu_memo.Append(wx.ID_ANY, _("Delete selected memos\tDel"))
+        self.Bind(wx.EVT_MENU, self._on_delete_memos, self.menu_memo_delete_memos)
+
         self.menubar.Append(self.menu_memo, _("Memo"))
 
     def init_ui(self):
@@ -261,6 +264,32 @@ class MemoBookWindow(wx.Frame):
             return
         self._edit_memo(item["file_name"])
         self._update_memos()
+
+    def _on_delete_memos(self, event):
+        # get selected memos
+        selected_items = self.list_memos.GetSelectedObjects()
+        if not selected_items:
+            return
+        if (
+            wx.MessageBox(
+                _("Are you sure you want to delete the selected memos?"),
+                _("Confirm deletion"),
+                wx.YES_NO | wx.ICON_WARNING,
+            )
+            != wx.YES
+        ):
+            return
+        # delete memos
+        focused_item_index = self.list_memos.GetFocusedItem()
+        for item in selected_items:
+            self.memobook.delete_memo(item["file_name"])
+        self._update_memos()
+        if focused_item_index < self.list_memos.GetItemCount():
+            self.list_memos.Focus(focused_item_index)
+            self.list_memos.Select(focused_item_index)
+        else:
+            self.list_memos.Focus(focused_item_index - 1)
+            self.list_memos.Select(focused_item_index - 1)
 
     ######################################## list events
 

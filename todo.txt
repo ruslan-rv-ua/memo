@@ -1,9 +1,5 @@
-- quick and full search
 - reset search results
-- delete selected memos
 - focus on created memo
-- inline css in templates
-- get list data performance
 - requests-html
 - error 403 forbiden
     https://medium.com/@mike.p.moritz/using-docker-compose-to-deploy-a-lightweight-python-rest-api-with-a-job-queue-37e6072a209b
@@ -20,3 +16,4 @@
 - import
 - other file types: html, doc, pdf
 - add memobook title as hashtag
+- quick and full search

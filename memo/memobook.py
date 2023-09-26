@@ -142,3 +142,8 @@ class MemoBook:
             for file in self._path.glob("*.md")
             if self.is_memo_matches_search(file.name, include=include, exclude=exclude, quick_search=quick_search)
         ]
+
+    def delete_memo(self, file_name: str):
+        """Delete a memo from the memo book."""
+        path = self._path / file_name
+        path.unlink()
