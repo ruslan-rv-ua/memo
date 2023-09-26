@@ -10,7 +10,7 @@ from ObjectListView import ColumnDefn, ObjectListView
 from editor_window import EditorDialog
 from memobook import MemoBook
 from templates import memo_template
-from utils import get_domain, get_page_description, get_page_html, get_page_markdown, get_page_title, is_valid_http_url
+from utils import get_page_html, is_valid_url, parse_page
 
 MIN_CHARS_TO_SEARCH = 5
 
@@ -204,39 +204,23 @@ class MemoBookWindow(wx.Frame):
         if not url:
             return False
         # validate URL
-        if not is_valid_http_url(url):
+        if not is_valid_url(url):
             wx.MessageBox(_("Invalid URL"), _("Error"), wx.OK | wx.ICON_ERROR)
             return False
 
         page_html = get_page_html(url)
-        # ask user to add bookmark anyway
-        if (
-            not page_html
-            and wx.MessageBox(
-                _("The URL is unreachable. Do you want to add it anyway?"),
-                _("Warning"),
-                wx.YES_NO | wx.ICON_WARNING,
-            )
-            != wx.YES
-        ):
+        if not page_html:
+            wx.MessageBox(_("Could not get the page"), _("Error"), wx.OK | wx.ICON_ERROR)
             return False
 
-        domain = get_domain(url)
-        if page_html:
-            page_title = get_page_title(page_html)
-            page_description = get_page_description(page_html)
-            page_markdown = get_page_markdown(page_html)
-        else:
-            page_title = ""
-            page_description = ""
-            page_markdown = ""
-
-        memo_title = f"{page_title} ({domain})" if page_title else domain
+        parsed_page = parse_page(page_html, url)
+        memo_title = (
+            f"{parsed_page.title} ({parsed_page.domain_name})" if parsed_page.title else parsed_page.domain_name
+        )
         markdown = ""
-        if page_description:
-            markdown += f"{page_description}\n\n"
-        markdown += page_markdown.strip()
-        markdown += f"\n\n---\n\n<{url}>"
+        if parsed_page.markdown:
+            markdown += parsed_page.markdown
+        markdown += f"\n\n<{parsed_page.url}>"
 
         # add bookmark
         self.memobook.add_memo(markdown=markdown, title=memo_title, add_date_hashtag=True, extra_hashtags=["#bookmark"])

@@ -1,12 +1,24 @@
 """Utility functions for the memo package."""
 
-import re  # TODO: do not use regex
 import urllib.parse
+from dataclasses import dataclass
 from datetime import datetime
 
+from courlan import check_url
 from html2text import HTML2Text
+from readability import Document
 
 MAX_FILENAME_LENGTH = 200
+
+
+@dataclass
+class ParsedPage:
+    """A parsed page."""
+
+    url: str
+    domain_name: str
+    title: str
+    markdown: str
 
 
 html2text_converter = HTML2Text()
@@ -21,15 +33,10 @@ html2text_converter.ignore_links = True
 html2text_converter.ignore_images = True
 
 
-def is_valid_http_url(url):
+def is_valid_url(url):
     """Check if the given url is a valid http url."""
-    try:
-        result = urllib.parse.urlparse(url)
-        if result.scheme not in ["http", "https"]:
-            return False
-        return True
-    except ValueError:
-        return False
+    url, domain_name = check_url(url)
+    return url is not None and domain_name is not None
 
 
 def get_page_html(url) -> str:
@@ -43,34 +50,9 @@ def get_page_html(url) -> str:
         return ""
 
 
-def get_page_title(html: str) -> str:
-    """Get the title of the page from the given HTML."""
-    title = ""
-    if html:
-        match = re.search(r"<title>(.*?)</title>", html, re.IGNORECASE | re.DOTALL)
-        if match:
-            title = match.group(1).strip()
-    return title
-
-
-def get_page_description(html: str) -> str:
-    """Get the description of the page from the given HTML."""
-    description = ""
-    if html:
-        match = re.search(r'<meta name="description" content="(.*?)"', html, re.IGNORECASE | re.DOTALL)
-        if match:
-            description = match.group(1).strip()
-    return description
-
-
-def get_domain(url: str) -> str:
-    """Get the domain of the given URL."""
-    return urllib.parse.urlparse(url).netloc
-
-
 def get_page_markdown(html: str) -> str:
     """Get the markdown of the given HTML."""
-    return html2text_converter.handle(html)
+    return html2text_converter.handle(html).strip()
 
 
 def make_filename_from_string(from_string, with_timestamp=False):
@@ -102,3 +84,28 @@ def make_filename_from_string(from_string, with_timestamp=False):
     if with_timestamp:
         filename += datetime.now().strftime("-%Y-%m-%d-%H-%M-%S")  # noqa: DTZ005
     return filename
+
+
+def parse_page(html: str, url: str, use_readability: bool = True) -> ParsedPage:
+    """Get a page from the given URL.
+
+    Args:
+        html: The HTML of the page.
+        url: The URL to get the page from.
+        use_readability: If True, use Readability to parse the page.
+
+    Returns:
+        A ParsedPage object.
+    """
+    html = get_page_html(url)
+    markdown = get_page_markdown(html)
+    if use_readability:
+        document = Document(html)
+        title = document.short_title()
+        html = document.summary()
+        url, domain_name = check_url(url)
+    else:
+        title = ""
+        url, domain_name = check_url(url)
+    markdown = get_page_markdown(html)
+    return ParsedPage(url, domain_name, title, markdown)
