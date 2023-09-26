@@ -1,4 +1,6 @@
-- delete memo
+- quick and full search
+- reset search results
+- delete selected memos
 - focus on created memo
 - inline css in templates
 - get list data performance
