@@ -12,6 +12,8 @@ from memobook import MemoBook
 from templates import memo_template
 from utils import get_domain, get_page_description, get_page_html, get_page_markdown, get_page_title, is_valid_http_url
 
+MIN_CHARS_TO_SEARCH = 5
+
 
 class MemoBookWindow(wx.Frame):
     """The main window of the MemoBook application."""
@@ -66,10 +68,13 @@ class MemoBookWindow(wx.Frame):
 
         ############################################################ left part
         # search box with label "Quick search"
-        self.search_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.search_label = wx.StaticText(self.panel, wx.ID_ANY, _("Quick search"))
-        self.search_sizer.Add(self.search_label, 0, wx.ALL | wx.EXPAND, 5)
         self.search_text = wx.TextCtrl(self.panel, wx.ID_ANY, "")
+        # bind search text events
+        self.search_text.Bind(wx.EVT_TEXT, lambda event: self._update_memos())
+
+        self.search_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.search_sizer.Add(self.search_label, 0, wx.ALL | wx.EXPAND, 5)
         self.search_sizer.Add(self.search_text, 1, wx.ALL | wx.EXPAND, 5)
 
         self.left_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -77,7 +82,7 @@ class MemoBookWindow(wx.Frame):
 
         self.list_memos = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT)
         self.list_memos.SetEmptyListMsg(_("No memos found"))
-        self.list_memos.Bind(wx.EVT_LIST_ITEM_SELECTED, self._on_select_memo)
+        self.list_memos.Bind(wx.EVT_LIST_ITEM_FOCUSED, self._on_focus_memo)
         self.left_sizer.Add(self.list_memos, 1, wx.ALL | wx.EXPAND, 5)
 
         ############################################################ right part
@@ -120,8 +125,34 @@ class MemoBookWindow(wx.Frame):
 
     def _update_memos(self):
         """Update the list of memos."""
-        objects = [{"file_name": file} for file in self.memobook.get_memos_file_names()]
-        self.list_memos.SetObjects(objects)  # TODO: optimize performance
+        search_text = self.search_text.GetValue()
+        if len(search_text) < MIN_CHARS_TO_SEARCH:
+            self.data = self.memobook.get_memos_as_dicts()
+        else:
+            search_words = search_text.lower().split()
+            include = []
+            exclude = []
+            for word in search_words:
+                if word.startswith("-"):
+                    exclude.append(word[1:])
+                else:
+                    include.append(word)
+            # filter memos
+            self.data = self.memobook.search(
+                include=include, exclude=exclude, quick_search=False
+            )  # TODO: quick_search=True
+        self.list_memos.SetObjects(self.data)
+
+    def _get_focused_list_item(self):
+        """Get the file name of the focused memo.
+
+        Returns:
+            The file name of the focused memo, or None if no memo is focused.
+        """
+        focused_item_index = self.list_memos.GetFocusedItem()
+        if focused_item_index == -1:
+            return None
+        return self.data[focused_item_index]
 
     def _focus_search_text(self):
         """Set the focus on the search text."""
@@ -200,9 +231,7 @@ class MemoBookWindow(wx.Frame):
         markdown += f"\n\n---\n\n<{url}>"
 
         # add bookmark
-        self.memobook.add_memo(
-            markdown=markdown, title=memo_title, add_date_hashtag=False, extra_hashtags=["#bookmark"]
-        )
+        self.memobook.add_memo(markdown=markdown, title=memo_title, add_date_hashtag=True, extra_hashtags=["#bookmark"])
 
         return True
 
@@ -224,25 +253,21 @@ class MemoBookWindow(wx.Frame):
     def _on_add_bookmark(self, event):
         self._add_bookmark()
         self._update_memos()
-        # focus last added bookmark
-        last_item_index = self.list_memos.GetItemCount() - 1
-        self.list_memos.Select(last_item_index)
-        self.list_memos.Focus(last_item_index)
+        # TODO: focus last added bookmark
 
     def _on_edit_memo(self, event):
-        selected_item_index = self.list_memos.GetFirstSelected()
-        if selected_item_index == -1:
+        item = self._get_focused_list_item()
+        if not item:
             return
-        item = self.list_memos.GetSelectedObject()
         self._edit_memo(item["file_name"])
         self._update_memos()
 
     ######################################## list events
 
-    def _on_select_memo(self, event):
+    def _on_focus_memo(self, event):
         """Select a memo."""
-        item = event.GetEventObject().GetSelectedObject()
-        memo = self.memobook.get_memo(item["file_name"])
+        # TODO: make separate function for this
+        memo = self.memobook.get_memo(self._get_focused_list_item()["file_name"])
         markdown = memo.content
-        html = memo_template.render(markdown=markdown, title=item["file_name"])
+        html = memo_template.render(markdown=markdown)
         self.web_view.SetPage(html, "")

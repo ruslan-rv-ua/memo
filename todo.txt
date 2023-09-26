@@ -17,3 +17,4 @@
 - export
 - import
 - other file types: html, doc, pdf
+- add memobook title as hashtag

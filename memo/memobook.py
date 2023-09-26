@@ -94,3 +94,51 @@ class MemoBook:
     def get_memos_file_names(self) -> list:
         """Get the file names of all memos in the memo book."""
         return [file.name for file in self._path.glob("*.md")]
+
+    def get_memos_as_dicts(self) -> list:
+        """Get all memos in the memo book as dicts.
+
+        Returns:
+            A list of dicts with the following keys: "file_name".
+        """
+        return [{"file_name": file.name} for file in self._path.glob("*.md")]
+
+    def is_memo_matches_search(self, file_name: str, include=None, exclude=None, quick_search: bool = True) -> bool:
+        """Check if a memo matches the search.
+
+        Args:
+            file_name: The file name of the memo.
+            include: The words to include in the search.
+            exclude: The words to exclude from the search.
+            quick_search: If True, search only in the file names.
+        """
+        text = file_name
+        if not quick_search:
+            text += (self._path / file_name).read_text(encoding="utf-8")
+        text = text.lower()
+        if include:
+            for word in include:
+                if word not in text:
+                    return False
+        if exclude:
+            for word in exclude:
+                if word in text:
+                    return False
+        return True
+
+    def search(self, include=None, exclude=None, quick_search: bool = True) -> list:
+        """Search memos in the memo book.
+
+        Args:
+            include: The words to include in the search.
+            exclude: The words to exclude from the search.
+            quick_search: If True, search only in the file names.
+
+        Returns:
+            A list of dicts with the following keys: "file_name".
+        """
+        return [
+            {"file_name": file.name}
+            for file in self._path.glob("*.md")
+            if self.is_memo_matches_search(file.name, include=include, exclude=exclude, quick_search=quick_search)
+        ]
