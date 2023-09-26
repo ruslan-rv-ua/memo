@@ -34,14 +34,19 @@ class MemoBookWindow(wx.Frame):
         # View menu
         self.menu_view = wx.Menu()
 
-        self.menu_view_quick_search = self.menu_view.Append(wx.ID_ANY, _("Quick search\tCtrl+F"))
+        self.menu_view_quick_search = self.menu_view.Append(wx.ID_ANY, _("Go to search\tCtrl+F"))
         self.Bind(wx.EVT_MENU, self._on_focus_quick_search, self.menu_view_quick_search)
 
-        self.menu_view_goto_list = self.menu_view.Append(wx.ID_ANY, _("Memos list\tCtrl+L"))
+        self.menu_view_goto_list = self.menu_view.Append(wx.ID_ANY, _("Go to memos list\tCtrl+L"))
         self.Bind(wx.EVT_MENU, self._on_focus_memos_list, self.menu_view_goto_list)
 
-        self.menu_view_goto_web_view = self.menu_view.Append(wx.ID_ANY, _("Web view\tCtrl+W"))
+        self.menu_view_goto_web_view = self.menu_view.Append(wx.ID_ANY, _("Go to preview\tCtrl+W"))
         self.Bind(wx.EVT_MENU, self._on_focus_web_view, self.menu_view_goto_web_view)
+
+        self.menu_view.AppendSeparator()
+
+        self.menu_view_reset_search_results = self.menu_view.Append(wx.ID_ANY, _("Reset search results\tCtrl+R"))
+        self.Bind(wx.EVT_MENU, self._on_reset_search_results, self.menu_view_reset_search_results)
 
         self.menubar.Append(self.menu_view, _("View"))
 
@@ -248,6 +253,10 @@ class MemoBookWindow(wx.Frame):
 
     def _on_focus_web_view(self, event):
         self._focus_web_view()
+
+    def _on_reset_search_results(self, event):
+        self.search_text.SetValue("")
+        self._update_memos()
 
     def _on_add_memo(self, event):
         self._add_memo()
