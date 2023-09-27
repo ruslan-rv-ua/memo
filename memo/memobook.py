@@ -58,8 +58,18 @@ class MemoBook:
     # Memos
     ########################################
 
-    def add_memo(self, markdown: str, title: str = "", add_date_hashtag: bool = True, extra_hashtags=None):
-        """Add a new memo to the memo book."""
+    def add_memo(self, markdown: str, title: str = "", add_date_hashtag: bool = True, extra_hashtags=None) -> str:
+        """Add a new memo to the memo book.
+
+        Args:
+            markdown: The markdown of the memo.
+            title: The title of the memo.
+            add_date_hashtag: If True, add the date as a hashtag.
+            extra_hashtags: Extra hashtags to add to the memo.
+
+        Returns:
+            The file name of the added memo.
+        """
         memo = Memo(markdown)
 
         # set hashtags
@@ -73,19 +83,29 @@ class MemoBook:
 
         # file name
         string_for_filename = title or memo.title
-        file_name = make_filename_from_string(string_for_filename)
-        file_path = self._path / f"{file_name}.md"
+        file_stem = make_filename_from_string(string_for_filename)
+        file_path = self._path / f"{file_stem}.md"
         if file_path.exists():
             # add timestamp to the file name
-            file_name = make_filename_from_string(string_for_filename, with_timestamp=True)
-            file_path = self._path / f"{file_name}.md"
+            file_stem = make_filename_from_string(string_for_filename, with_timestamp=True)
+            file_path = self._path / f"{file_stem}.md"
         memo.save(file_path)
+        return file_path.name
 
-    def update_memo(self, file_name: str, markdown: str):
-        """Update a memo in the memo book."""
+    def update_memo(self, file_name: str, markdown: str) -> str:
+        """Update a memo in the memo book.
+
+        Args:
+            file_name: The file name of the memo.
+            markdown: The markdown of the memo.
+
+        Returns:
+            The file name of the updated memo.
+        """
         path = self._path / file_name
         memo = Memo(markdown)
         memo.save(path)
+        return file_name
 
     def get_memo(self, file_name: str) -> Memo:
         """Get a memo from the memo book."""
@@ -143,7 +163,15 @@ class MemoBook:
             if self.is_memo_matches_search(file.name, include=include, exclude=exclude, quick_search=quick_search)
         ]
 
-    def delete_memo(self, file_name: str):
-        """Delete a memo from the memo book."""
+    def delete_memo(self, file_name: str) -> str:
+        """Delete a memo from the memo book.
+
+        Args:
+            file_name: The file name of the memo.
+
+        Returns:
+            The file name of the deleted memo.
+        """
         path = self._path / file_name
         path.unlink()
+        return file_name

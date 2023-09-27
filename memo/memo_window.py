@@ -5,7 +5,7 @@ from pathlib import Path
 
 import wx
 import wx.html2
-from ObjectListView import ColumnDefn, ObjectListView
+from ObjectListView import ColumnDefn, FastObjectListView, ObjectListView
 
 from editor_window import EditorDialog
 from memobook import MemoBook
@@ -88,7 +88,12 @@ class MemoBookWindow(wx.Frame):
         self.left_sizer = wx.BoxSizer(wx.VERTICAL)
         self.left_sizer.Add(self.search_sizer, 0, wx.ALL | wx.EXPAND, 5)
 
-        self.list_memos = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT)
+        self.list_memos = FastObjectListView(
+            self.panel,
+            wx.ID_ANY,
+            cellEditMode=ObjectListView.CELLEDIT_F2ONLY,
+            useAlternateBackColors=True,
+        )
         self.list_memos.SetEmptyListMsg(_("No memos found"))
         self.list_memos.Bind(wx.EVT_LIST_ITEM_FOCUSED, self._on_focus_memo)
         self.left_sizer.Add(self.list_memos, 1, wx.ALL | wx.EXPAND, 5)
@@ -117,16 +122,11 @@ class MemoBookWindow(wx.Frame):
         self.memobook = MemoBook(memobook_path)
 
         self.list_memos.SetColumns(
-            [
-                ColumnDefn(
-                    _("Memo"), "left", 500, "file_name", stringConverter=lambda file_name: file_name[:-3]
-                ),  # remove ".md"
-            ]
+            [ColumnDefn(_("Memo"), "left", 500, "file_name", stringConverter=lambda file_name: file_name[:-3])]
         )
 
         self._update_memos()
         self._focus_list_memos()
-        # focus first memo if any
         if self.list_memos.GetItemCount() > 0:
             self.list_memos.Select(0)
             self.list_memos.Focus(0)
@@ -162,6 +162,20 @@ class MemoBookWindow(wx.Frame):
             return None
         return self.data[focused_item_index]
 
+    def _get_memo_index(self, file_name: str):
+        """Get the index of the memo with the given file name.
+
+        Args:
+            file_name: The file name of the memo.
+
+        Returns:
+            The index of the memo with the given file name, or None if no memo has the given file name.
+        """
+        for i, memo in enumerate(self.data):
+            if memo["file_name"] == file_name:
+                return i
+        return None
+
     def _focus_search_text(self):
         """Set the focus on the search text."""
         self.search_text.SetFocus()
@@ -174,16 +188,6 @@ class MemoBookWindow(wx.Frame):
         """Set the focus on the web view."""
         self.web_view.SetFocus()
 
-    ##### memo
-
-    def _add_memo(self):
-        """Add a memo."""
-        edit_dlg = EditorDialog(parent=self, title=_("Add memo"), value="")
-        if edit_dlg.ShowModal() != wx.ID_OK:
-            return
-        markdown = edit_dlg.value
-        self.memobook.add_memo(markdown=markdown, add_date_hashtag=True)
-
     def _edit_memo(self, file_name: str):
         """Edit a memo."""
         memo = self.memobook.get_memo(file_name)
@@ -191,7 +195,8 @@ class MemoBookWindow(wx.Frame):
         if edit_dlg.ShowModal() != wx.ID_OK:
             return
         markdown = edit_dlg.value
-        self.memobook.update_memo(file_name, markdown=markdown)
+        file_name = self.memobook.update_memo(file_name, markdown=markdown)
+        self.list_memos.Select(self._get_memo_index(file_name))
 
     def _add_bookmark(self) -> bool:
         """Add a bookmark.
@@ -223,7 +228,10 @@ class MemoBookWindow(wx.Frame):
         markdown += f"\n\n<{parsed_page.url}>"
 
         # add bookmark
-        self.memobook.add_memo(markdown=markdown, title=memo_title, add_date_hashtag=True, extra_hashtags=["#bookmark"])
+        file_name = self.memobook.add_memo(
+            markdown=markdown, title=memo_title, add_date_hashtag=True, extra_hashtags=["#bookmark"]
+        )
+        self.list_memos.Select(self._get_memo_index(file_name))
 
         return True
 
@@ -243,13 +251,18 @@ class MemoBookWindow(wx.Frame):
         self._update_memos()
 
     def _on_add_memo(self, event):
-        self._add_memo()
+        edit_dlg = EditorDialog(parent=self, title=_("Add memo"), value="")
+        if edit_dlg.ShowModal() != wx.ID_OK:
+            return
+        markdown = edit_dlg.value
+        file_name = self.memobook.add_memo(markdown=markdown, add_date_hashtag=True)
         self._update_memos()
+        index = self._get_memo_index(file_name)
+        self.list_memos.Focus(index)
+        self.list_memos.Select(index)
 
     def _on_add_bookmark(self, event):
         self._add_bookmark()
-        self._update_memos()
-        # TODO: focus last added bookmark
 
     def _on_edit_memo(self, event):
         item = self._get_focused_list_item()
