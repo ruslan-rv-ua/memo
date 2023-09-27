@@ -6,7 +6,7 @@ from pathlib import Path
 from benedict import benedict
 
 from memo_item import Memo
-from utils import make_filename_from_string
+from utils import make_file_stem_from_string
 
 DEFAULT_MEMOBOOK_SETTINGS = {
     "memos": {
@@ -19,6 +19,8 @@ DEFAULT_MEMOBOOK_SETTINGS = {
         "sort": {"column": "date", "order": "desc"},
     }
 }
+
+MEMO_EXTENSION = ".md"
 
 
 class MemoBookSettings(benedict):
@@ -58,8 +60,18 @@ class MemoBook:
     # Memos
     ########################################
 
-    def add_memo(self, markdown: str, title: str = "", add_date_hashtag: bool = True, extra_hashtags=None):
-        """Add a new memo to the memo book."""
+    def add_memo(self, markdown: str, title: str = "", add_date_hashtag: bool = True, extra_hashtags=None) -> str:
+        """Add a new memo to the memo book.
+
+        Args:
+            markdown: The markdown of the memo.
+            title: The title of the memo.
+            add_date_hashtag: If True, add the date as a hashtag.
+            extra_hashtags: Extra hashtags to add to the memo.
+
+        Returns:
+            Name of the memo.
+        """
         memo = Memo(markdown)
 
         # set hashtags
@@ -73,48 +85,67 @@ class MemoBook:
 
         # file name
         string_for_filename = title or memo.title
-        file_name = make_filename_from_string(string_for_filename)
-        file_path = self._path / f"{file_name}.md"
+        name = make_file_stem_from_string(string_for_filename)
+        file_path = self._path / f"{name}{MEMO_EXTENSION}"
         if file_path.exists():
             # add timestamp to the file name
-            file_name = make_filename_from_string(string_for_filename, with_timestamp=True)
-            file_path = self._path / f"{file_name}.md"
+            name = f"{name}_{datetime.now().strftime('%Y%m%d%H%M%S')}"  # noqa: DTZ005
+            file_path = self._path / f"{name}{MEMO_EXTENSION}"
         memo.save(file_path)
+        return name
 
-    def update_memo(self, file_name: str, markdown: str):
-        """Update a memo in the memo book."""
-        path = self._path / file_name
+    def update_memo(self, name: str, markdown: str) -> str:
+        """Update a memo in the memo book.
+
+        Args:
+            name: The name of the memo.
+            markdown: The markdown of the memo.
+
+        Returns:
+            The name of the updated memo or None if the memo was not found.
+        """
+        path = self._path / f"{name}{MEMO_EXTENSION}"
+        if not path.exists():
+            return None
         memo = Memo(markdown)
         memo.save(path)
+        return name
 
-    def get_memo(self, file_name: str) -> Memo:
+    def get_memo(self, name: str) -> Memo:
         """Get a memo from the memo book."""
-        return Memo.from_path(self._path / file_name)
+        return Memo.from_path(self._path / f"{name}{MEMO_EXTENSION}")
+
+    def get_memo_content(self, name: str) -> str:
+        """Get the content of a memo from the memo book."""
+        return (self._path / f"{name}{MEMO_EXTENSION}").read_text(encoding="utf-8")
 
     def get_memos_file_names(self) -> list:
         """Get the file names of all memos in the memo book."""
         return [file.name for file in self._path.glob("*.md")]
 
-    def get_memos_as_dicts(self) -> list:
+    def get_memos_info(self) -> list:
         """Get all memos in the memo book as dicts.
 
         Returns:
-            A list of dicts with the following keys: "file_name".
+            A list of dicts with the following keys: "name".
         """
-        return [{"file_name": file.name} for file in self._path.glob("*.md")]
+        return [{"name": file.stem} for file in self._path.glob(f"*{MEMO_EXTENSION}")]
 
-    def is_memo_matches_search(self, file_name: str, include=None, exclude=None, quick_search: bool = True) -> bool:
+    def is_memo_matches_search(self, name: str, include=None, exclude=None, quick_search: bool = True) -> bool:
         """Check if a memo matches the search.
 
         Args:
-            file_name: The file name of the memo.
+            name: The name of the memo.
             include: The words to include in the search.
             exclude: The words to exclude from the search.
             quick_search: If True, search only in the file names.
+
+        Returns:
+            True if the memo matches the search, False otherwise.
         """
-        text = file_name
+        text = name
         if not quick_search:
-            text += (self._path / file_name).read_text(encoding="utf-8")
+            text += (self._path / f"{name}{MEMO_EXTENSION}").read_text()
         text = text.lower()
         if include:
             for word in include:
@@ -135,15 +166,25 @@ class MemoBook:
             quick_search: If True, search only in the file names.
 
         Returns:
-            A list of dicts with the following keys: "file_name".
+            A list of dicts with the following keys: "name".
         """
         return [
-            {"file_name": file.name}
-            for file in self._path.glob("*.md")
+            {"name": file.stem}
+            for file in self._path.glob(f"*{MEMO_EXTENSION}")
             if self.is_memo_matches_search(file.name, include=include, exclude=exclude, quick_search=quick_search)
         ]
 
-    def delete_memo(self, file_name: str):
-        """Delete a memo from the memo book."""
-        path = self._path / file_name
-        path.unlink()
+    def delete_memo(self, name: str) -> str:
+        """Delete a memo from the memo book.
+
+        Args:
+            name: The name of the memo.
+
+        Returns:
+            The name of the deleted memo or None if the memo was not found.
+        """
+        path = self._path / f"{name}{MEMO_EXTENSION}"
+        if path.exists():
+            path.unlink()
+            return name
+        return None

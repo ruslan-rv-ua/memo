@@ -2,7 +2,6 @@
 
 import urllib.parse
 from dataclasses import dataclass
-from datetime import datetime
 
 from courlan import check_url
 from html2text import HTML2Text
@@ -55,14 +54,13 @@ def get_page_markdown(html: str) -> str:
     return html2text_converter.handle(html).strip()
 
 
-def make_filename_from_string(from_string, with_timestamp=False):
+def make_file_stem_from_string(from_string):
     """Make a filename from the given string.
 
     The filename is a valid filename without extension.
 
     Args:
         from_string (str): the string to make the filename from.
-        with_timestamp (bool): if True, the current timestamp is added to the filename.
 
     Returns:
         str: the filename.
@@ -78,12 +76,7 @@ def make_filename_from_string(from_string, with_timestamp=False):
     if len(filename) > MAX_FILENAME_LENGTH:
         filename = filename[:MAX_FILENAME_LENGTH]
     # remove consecutive spaces
-    filename = " ".join(filename.split())
-
-    # add timestamp
-    if with_timestamp:
-        filename += datetime.now().strftime("-%Y-%m-%d-%H-%M-%S")  # noqa: DTZ005
-    return filename
+    return " ".join(filename.split())
 
 
 def parse_page(html: str, url: str, use_readability: bool = True) -> ParsedPage:
