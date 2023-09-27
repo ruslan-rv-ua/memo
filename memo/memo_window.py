@@ -121,10 +121,10 @@ class MemoBookWindow(wx.Frame):
         """Open the memobook at the given path."""
         self.memobook = MemoBook(memobook_path)
 
-        self.list_memos.SetColumns([ColumnDefn(_("Memo"), "left", 1000, "title")])
+        self.list_memos.SetColumns([ColumnDefn(_("Memo"), "left", 800, "name")])
 
         self._update_memos()
-        self._focus_list_memos()
+        self._on_focus_memos_list(None)
         if self.list_memos.GetItemCount() > 0:
             self.list_memos.Select(0)
             self.list_memos.Focus(0)
@@ -160,61 +160,61 @@ class MemoBookWindow(wx.Frame):
             return None
         return self.data[focused_item_index]
 
-    def _get_memo_index(self, title: str):
-        """Get the index of the memo with the given file name.
+    def _get_memo_index(self, name: str):
+        """Get the index of the memo with the given name.
 
         Args:
-            title: The title of the memo.
+            name: The name of the memo.
 
         Returns:
             The index of the memo with the given title, or None if no memo was found.
         """
         for i, memo in enumerate(self.data):
-            if memo["title"] == title:
+            if memo["name"] == name:
                 return i
         return None
 
-    def _focus_search_text(self):
-        """Set the focus on the search text."""
+    ######################################## menu events
+
+    def _on_focus_quick_search(self, event):
         self.search_text.SetFocus()
 
-    def _focus_list_memos(self):
-        """Set the focus on the memos list."""
+    def _on_focus_memos_list(self, event):
         self.list_memos.SetFocus()
 
-    def _focus_web_view(self):
-        """Set the focus on the web view."""
+    def _on_focus_web_view(self, event):
         self.web_view.SetFocus()
 
-    def _edit_memo(self, title: str):
-        """Edit a memo."""
-        memo = self.memobook.get_memo(title)
-        edit_dlg = EditorDialog(parent=self, title=_("Edit memo"), value=memo.content)
+    def _on_reset_search_results(self, event):
+        self.search_text.SetValue("")
+        self._update_memos()
+
+    def _on_add_memo(self, event):
+        edit_dlg = EditorDialog(parent=self, title=_("Add memo"), value="")
         if edit_dlg.ShowModal() != wx.ID_OK:
             return
         markdown = edit_dlg.value
-        title = self.memobook.update_memo(title, markdown=markdown)
-        self.list_memos.Select(self._get_memo_index(title))
+        name = self.memobook.add_memo(markdown=markdown, add_date_hashtag=True)
+        self._update_memos()
+        index = self._get_memo_index(name)
+        self.list_memos.Focus(index)
+        self.list_memos.Select(index)
 
-    def _add_bookmark(self) -> bool:
-        """Add a bookmark.
-
-        Returns:
-            True if the bookmark was added, False otherwise.
-        """
+    def _on_add_bookmark(self, event):
+        """Add a bookmark."""
         # ask bookmark's URL
         url = wx.GetTextFromUser(_("Enter the URL of the bookmark"), _("Add bookmark"), "")
         if not url:
-            return False
+            return
         # validate URL
         if not is_valid_url(url):
             wx.MessageBox(_("Invalid URL"), _("Error"), wx.OK | wx.ICON_ERROR)
-            return False
+            return
 
         page_html = get_page_html(url)
         if not page_html:
             wx.MessageBox(_("Could not get the page"), _("Error"), wx.OK | wx.ICON_ERROR)
-            return False
+            return
 
         parsed_page = parse_page(page_html, url)
         memo_title = (
@@ -226,47 +226,27 @@ class MemoBookWindow(wx.Frame):
         markdown += f"\n\n<{parsed_page.url}>"
 
         # add bookmark
-        file_name = self.memobook.add_memo(
+        name = self.memobook.add_memo(
             markdown=markdown, title=memo_title, add_date_hashtag=True, extra_hashtags=["#bookmark"]
         )
-        self.list_memos.Select(self._get_memo_index(file_name))
 
-        return True
-
-    ######################################## menu events
-
-    def _on_focus_quick_search(self, event):
-        self.search_text.SetFocus()
-
-    def _on_focus_memos_list(self, event):
-        self._focus_list_memos()
-
-    def _on_focus_web_view(self, event):
-        self._focus_web_view()
-
-    def _on_reset_search_results(self, event):
-        self.search_text.SetValue("")
         self._update_memos()
-
-    def _on_add_memo(self, event):
-        edit_dlg = EditorDialog(parent=self, title=_("Add memo"), value="")
-        if edit_dlg.ShowModal() != wx.ID_OK:
-            return
-        markdown = edit_dlg.value
-        title = self.memobook.add_memo(markdown=markdown, add_date_hashtag=True)
-        self._update_memos()
-        index = self._get_memo_index(title)
-        self.list_memos.Focus(index)
+        index = self._get_memo_index(name)
         self.list_memos.Select(index)
-
-    def _on_add_bookmark(self, event):
-        self._add_bookmark()
+        self.list_memos.Focus(index)
 
     def _on_edit_memo(self, event):
         item = self._get_focused_list_item()
         if not item:
             return
-        self._edit_memo(item["file_name"])
+        name = item["name"]
+        memo = self.memobook.get_memo(name)
+        edit_dlg = EditorDialog(parent=self, title=_("Edit memo"), value=memo.content)
+        if edit_dlg.ShowModal() != wx.ID_OK:
+            return
+        markdown = edit_dlg.value
+        name = self.memobook.update_memo(name=name, markdown=markdown)
+        self.list_memos.Select(self._get_memo_index(name))
         self._update_memos()
 
     def _on_delete_memos(self, event):
@@ -286,7 +266,7 @@ class MemoBookWindow(wx.Frame):
         # delete memos
         focused_item_index = self.list_memos.GetFocusedItem()
         for item in selected_items:
-            self.memobook.delete_memo(item["file_name"])
+            self.memobook.delete_memo(item["name"])
         self._update_memos()
         if focused_item_index < self.list_memos.GetItemCount():
             self.list_memos.Focus(focused_item_index)
@@ -299,8 +279,6 @@ class MemoBookWindow(wx.Frame):
 
     def _on_focus_memo(self, event):
         """Select a memo."""
-        # TODO: make separate function for this
-        memo = self.memobook.get_memo(self._get_focused_list_item()["file_name"])
-        markdown = memo.content
+        markdown = self.memobook.get_memo_content(self._get_focused_list_item()["name"])
         html = memo_template.render(markdown=markdown)
         self.web_view.SetPage(html, "")
