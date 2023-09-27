@@ -121,9 +121,7 @@ class MemoBookWindow(wx.Frame):
         """Open the memobook at the given path."""
         self.memobook = MemoBook(memobook_path)
 
-        self.list_memos.SetColumns(
-            [ColumnDefn(_("Memo"), "left", 500, "file_name", stringConverter=lambda file_name: file_name[:-3])]
-        )
+        self.list_memos.SetColumns([ColumnDefn(_("Memo"), "left", 1000, "title")])
 
         self._update_memos()
         self._focus_list_memos()
@@ -135,7 +133,7 @@ class MemoBookWindow(wx.Frame):
         """Update the list of memos."""
         search_text = self.search_text.GetValue()
         if len(search_text) < MIN_CHARS_TO_SEARCH:
-            self.data = self.memobook.get_memos_as_dicts()
+            self.data = self.memobook.get_memos_info()
         else:
             search_words = search_text.lower().split()
             include = []
@@ -162,17 +160,17 @@ class MemoBookWindow(wx.Frame):
             return None
         return self.data[focused_item_index]
 
-    def _get_memo_index(self, file_name: str):
+    def _get_memo_index(self, title: str):
         """Get the index of the memo with the given file name.
 
         Args:
-            file_name: The file name of the memo.
+            title: The title of the memo.
 
         Returns:
-            The index of the memo with the given file name, or None if no memo has the given file name.
+            The index of the memo with the given title, or None if no memo was found.
         """
         for i, memo in enumerate(self.data):
-            if memo["file_name"] == file_name:
+            if memo["title"] == title:
                 return i
         return None
 
@@ -188,15 +186,15 @@ class MemoBookWindow(wx.Frame):
         """Set the focus on the web view."""
         self.web_view.SetFocus()
 
-    def _edit_memo(self, file_name: str):
+    def _edit_memo(self, title: str):
         """Edit a memo."""
-        memo = self.memobook.get_memo(file_name)
+        memo = self.memobook.get_memo(title)
         edit_dlg = EditorDialog(parent=self, title=_("Edit memo"), value=memo.content)
         if edit_dlg.ShowModal() != wx.ID_OK:
             return
         markdown = edit_dlg.value
-        file_name = self.memobook.update_memo(file_name, markdown=markdown)
-        self.list_memos.Select(self._get_memo_index(file_name))
+        title = self.memobook.update_memo(title, markdown=markdown)
+        self.list_memos.Select(self._get_memo_index(title))
 
     def _add_bookmark(self) -> bool:
         """Add a bookmark.
@@ -255,9 +253,9 @@ class MemoBookWindow(wx.Frame):
         if edit_dlg.ShowModal() != wx.ID_OK:
             return
         markdown = edit_dlg.value
-        file_name = self.memobook.add_memo(markdown=markdown, add_date_hashtag=True)
+        title = self.memobook.add_memo(markdown=markdown, add_date_hashtag=True)
         self._update_memos()
-        index = self._get_memo_index(file_name)
+        index = self._get_memo_index(title)
         self.list_memos.Focus(index)
         self.list_memos.Select(index)
 
