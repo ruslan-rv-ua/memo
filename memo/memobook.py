@@ -60,17 +60,17 @@ class MemoBook:
     # Memos
     ########################################
 
-    def add_memo(self, markdown: str, title: str = "", add_date_hashtag: bool = True, extra_hashtags=None) -> str:
+    def add_memo(self, markdown: str, name: str = "", add_date_hashtag: bool = True, extra_hashtags=None) -> str:
         """Add a new memo to the memo book.
 
         Args:
             markdown: The markdown of the memo.
-            title: The title of the memo.
+            name: The name of the memo. If empty, the title of the memo is used.
             add_date_hashtag: If True, add the date as a hashtag.
             extra_hashtags: Extra hashtags to add to the memo.
 
         Returns:
-            Name of the memo.
+            The name of the added memo or None if the memo was not added.
         """
         memo = Memo(markdown)
 
@@ -84,8 +84,10 @@ class MemoBook:
             memo.update_hashtags(hashtags)
 
         # file name
-        string_for_filename = title or memo.title
+        string_for_filename = name or memo.title
         name = make_file_stem_from_string(string_for_filename)
+        if not name:
+            return None
         file_path = self._path / f"{name}{MEMO_EXTENSION}"
         if file_path.exists():
             # add timestamp to the file name
@@ -187,21 +189,4 @@ class MemoBook:
         if path.exists():
             path.unlink()
             return name
-        return None
-
-    def rename_memo(self, old_name: str, new_name: str) -> str:
-        """Rename a memo in the memo book.
-
-        Args:
-            old_name: The old name of the memo.
-            new_name: The new name of the memo.
-
-        Returns:
-            The name of the renamed memo or None if the memo was not found.
-        """
-        path = self._path / f"{old_name}{MEMO_EXTENSION}"
-        if path.exists():
-            new_path = self._path / f"{new_name}{MEMO_EXTENSION}"
-            path.rename(new_path)
-            return new_name
         return None
