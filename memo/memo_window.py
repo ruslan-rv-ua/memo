@@ -5,7 +5,12 @@ from pathlib import Path
 
 import wx
 import wx.html2
-from ObjectListView import ColumnDefn, FastObjectListView, ObjectListView
+from ObjectListView import (
+    EVT_CELL_EDIT_FINISHING,
+    EVT_CELL_EDIT_STARTING,
+    ColumnDefn,
+    ObjectListView,
+)
 
 from editor_window import EditorDialog
 from memobook import MemoBook
@@ -88,9 +93,10 @@ class MemoBookWindow(wx.Frame):
         self.left_sizer = wx.BoxSizer(wx.VERTICAL)
         self.left_sizer.Add(self.search_sizer, 0, wx.ALL | wx.EXPAND, 5)
 
-        self.list_memos = FastObjectListView(
+        self.list_memos = ObjectListView(
             self.panel,
             wx.ID_ANY,
+            style=wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_EDIT_LABELS,
             cellEditMode=ObjectListView.CELLEDIT_F2ONLY,
             useAlternateBackColors=True,
         )
@@ -111,11 +117,12 @@ class MemoBookWindow(wx.Frame):
         self.panel.Layout()
         self.main_sizer.Fit(self.panel)
 
-        # add panel to frame
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
 
-        # maximize the window
         self.Maximize(True)
+
+        self.Bind(EVT_CELL_EDIT_STARTING, self._on_cell_edit_starting)
+        self.Bind(EVT_CELL_EDIT_FINISHING, self._on_cell_edit_finishing)
 
     def _open_memobook(self, memobook_path: Path):
         """Open the memobook at the given path."""
@@ -282,3 +289,28 @@ class MemoBookWindow(wx.Frame):
         markdown = self.memobook.get_memo_content(self._get_focused_list_item()["name"])
         html = memo_template.render(markdown=markdown)
         self.web_view.SetPage(html, "")
+
+    def _on_cell_edit_starting(self, event):
+        self._renaming_index = self.list_memos.GetFocusedItem()
+        self._renaming_old_name = self.data[self._renaming_index]["name"]
+
+    def _on_cell_edit_finishing(self, event):
+        renaming_new_name = self.data[self._renaming_index]["name"]
+        if renaming_new_name == self._renaming_old_name:
+            event.Veto()
+            return
+        new_name = self.memobook.rename_memo(self._renaming_old_name, renaming_new_name)
+        if new_name is None:
+            # error message dialog
+            wx.MessageBox(
+                _("A memo with the same name already exists"),
+                _("Error"),
+                wx.OK | wx.ICON_ERROR,
+            )
+            event.Veto()
+            return
+        self._update_memos()
+        self.list_memos.Select(self._get_memo_index(new_name))
+        self.list_memos.Focus(self._get_memo_index(new_name))
+        self._renaming_index = None
+        self._renaming_old_name = None
