@@ -5,7 +5,7 @@ from pathlib import Path
 
 import wx
 import wx.html2
-from ObjectListView import ColumnDefn, FastObjectListView, ObjectListView
+from ObjectListView import ColumnDefn, FastObjectListView
 
 from editor_window import EditorDialog
 from memobook import MemoBook
@@ -91,7 +91,7 @@ class MemoBookWindow(wx.Frame):
         self.list_memos = FastObjectListView(
             self.panel,
             wx.ID_ANY,
-            cellEditMode=ObjectListView.CELLEDIT_F2ONLY,
+            cellEditMode=FastObjectListView.CELLEDIT_F2ONLY,
             useAlternateBackColors=True,
         )
         self.list_memos.SetEmptyListMsg(_("No memos found"))
@@ -111,17 +111,37 @@ class MemoBookWindow(wx.Frame):
         self.panel.Layout()
         self.main_sizer.Fit(self.panel)
 
-        # add panel to frame
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
 
-        # maximize the window
         self.Maximize(True)
 
     def _open_memobook(self, memobook_path: Path):
         """Open the memobook at the given path."""
         self.memobook = MemoBook(memobook_path)
 
-        self.list_memos.SetColumns([ColumnDefn(_("Memo"), "left", 800, "name")])
+        def rename_memo(memo, new_name):
+            new_name = new_name.strip()
+            if not new_name or new_name == memo["name"]:
+                return
+            memo_content = self.memobook.get_memo_content(memo["name"])
+            name = self.memobook.add_memo(markdown=memo_content, name=new_name, add_date_hashtag=False)
+            if name is None:
+                wx.MessageBox(
+                    _(
+                        "Invalid memo name. Memo names must be unique and cannot contain the following characters: "
+                        '/ \\ : * ? ! " < > |'
+                    ),
+                    _("Error"),
+                    wx.OK | wx.ICON_ERROR,
+                )
+                return
+            self.memobook.delete_memo(memo["name"])
+            self._update_memos()
+            index = self._get_memo_index(name)
+            self.list_memos.Select(index)
+            self.list_memos.Focus(index)
+
+        self.list_memos.SetColumns([ColumnDefn(_("Memo"), "left", 800, "name", valueSetter=rename_memo)])
 
         self._update_memos()
         self._on_focus_memos_list(None)
@@ -227,7 +247,7 @@ class MemoBookWindow(wx.Frame):
 
         # add bookmark
         name = self.memobook.add_memo(
-            markdown=markdown, title=memo_title, add_date_hashtag=True, extra_hashtags=["#bookmark"]
+            markdown=markdown, name=memo_title, add_date_hashtag=True, extra_hashtags=["#bookmark"]
         )
 
         self._update_memos()

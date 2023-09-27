@@ -1,12 +1,10 @@
-- focus on created memo
-- requests-html
-- error 403 forbiden
-    https://medium.com/@mike.p.moritz/using-docker-compose-to-deploy-a-lightweight-python-rest-api-with-a-job-queue-37e6072a209b
 - WebView
     - TAB_TRAVERSAL
     - activate link
 - manage memobooks
-- rename memo in list
+- requests-html
+- error 403 forbiden
+    https://medium.com/@mike.p.moritz/using-docker-compose-to-deploy-a-lightweight-python-rest-api-with-a-job-queue-37e6072a209b
 - external editors
 - fix url placement in Bookmark.md
 - edit memobook settings
@@ -17,3 +15,5 @@
 - quick and full search
 
 - readability -- improove it
+- if unsuccessful memo rename, error message shown twice
+- button to copy code to clipboard

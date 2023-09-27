@@ -60,17 +60,17 @@ class MemoBook:
     # Memos
     ########################################
 
-    def add_memo(self, markdown: str, title: str = "", add_date_hashtag: bool = True, extra_hashtags=None) -> str:
+    def add_memo(self, markdown: str, name: str = "", add_date_hashtag: bool = True, extra_hashtags=None) -> str:
         """Add a new memo to the memo book.
 
         Args:
             markdown: The markdown of the memo.
-            title: The title of the memo.
+            name: The name of the memo. If empty, the title of the memo is used.
             add_date_hashtag: If True, add the date as a hashtag.
             extra_hashtags: Extra hashtags to add to the memo.
 
         Returns:
-            Name of the memo.
+            The name of the added memo or None if the memo was not added.
         """
         memo = Memo(markdown)
 
@@ -84,8 +84,10 @@ class MemoBook:
             memo.update_hashtags(hashtags)
 
         # file name
-        string_for_filename = title or memo.title
+        string_for_filename = name or memo.title
         name = make_file_stem_from_string(string_for_filename)
+        if not name:
+            return None
         file_path = self._path / f"{name}{MEMO_EXTENSION}"
         if file_path.exists():
             # add timestamp to the file name
