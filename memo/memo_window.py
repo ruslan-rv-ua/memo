@@ -1,18 +1,22 @@
 """This module contains the GUI for the memo application."""
 
+import json
 from gettext import gettext as _
 from pathlib import Path
+from time import sleep
 
 import wx
 import wx.html2
+from courlan import check_url
 from ObjectListView import ColumnDefn, FastObjectListView
 
 from editor_window import EditorDialog
 from memobook import MemoBook
 from templates import memo_template
-from utils import get_page_html, is_valid_url, parse_page
+from utils import get_page_markdown
 
 MIN_CHARS_TO_SEARCH = 5
+READABILITY_JS = (Path(__file__).parent / "Readability.js").read_text(encoding="utf-8")
 
 
 class MemoBookWindow(wx.Frame):
@@ -224,32 +228,47 @@ class MemoBookWindow(wx.Frame):
         """Add a bookmark."""
         # ask bookmark's URL
         url = wx.GetTextFromUser(_("Enter the URL of the bookmark"), _("Add bookmark"), "")
-        if not url:
-            return
         # validate URL
-        if not is_valid_url(url):
+        try:
+            url, domain_name = check_url(url)
+            if not url:
+                wx.MessageBox(_("Invalid URL"), _("Error"), wx.OK | wx.ICON_ERROR)
+                return
+        except TypeError:
             wx.MessageBox(_("Invalid URL"), _("Error"), wx.OK | wx.ICON_ERROR)
             return
 
-        page_html = get_page_html(url)
-        if not page_html:
+        self.web_view.ClearHistory()
+
+        # get page HTML
+        self.web_view.LoadURL(url)
+        for _nice_try in range(10):
+            page_html = self.web_view.GetPageSource()
+            if page_html:
+                break
+            sleep(1)
+        else:
             wx.MessageBox(_("Could not get the page"), _("Error"), wx.OK | wx.ICON_ERROR)
             return
 
-        parsed_page = parse_page(page_html, url)
-        memo_title = (
-            f"{parsed_page.title} ({parsed_page.domain_name})" if parsed_page.title else parsed_page.domain_name
-        )
-        markdown = ""
-        if parsed_page.markdown:
-            markdown += parsed_page.markdown
-        markdown += f"\n\n<{parsed_page.url}>"
+        # inject Readability.js
+        success, article_json = self.web_view.RunScript(READABILITY_JS)
+        article = json.loads(article_json)
+        if not success or not article_json:
+            wx.MessageBox(_("Could not get the page"), _("Error"), wx.OK | wx.ICON_ERROR)
+            return
+
+        readable_html = article["content"]
+        page_markdown = get_page_markdown(readable_html)
+        memo_title = f"{article['title']} ({domain_name})" if article["title"] else domain_name
+        memo_markdown = f"{page_markdown}\n\n<{url}>"
 
         # add bookmark
         name = self.memobook.add_memo(
-            markdown=markdown, name=memo_title, add_date_hashtag=True, extra_hashtags=["#bookmark"]
+            markdown=memo_markdown, name=memo_title, add_date_hashtag=True, extra_hashtags=["#bookmark"]
         )
 
+        self.web_view.SetPage("", "")
         self._update_memos()
         index = self._get_memo_index(name)
         self.list_memos.Select(index)
