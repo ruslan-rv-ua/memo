@@ -6,7 +6,8 @@ from pathlib import Path
 from benedict import benedict
 
 from memo_item import Memo
-from utils import make_file_stem_from_string
+
+MAX_FILENAME_LENGTH = 200
 
 DEFAULT_MEMOBOOK_SETTINGS = {
     "memos": {
@@ -85,7 +86,7 @@ class MemoBook:
 
         # file name
         string_for_filename = name or memo.title
-        name = make_file_stem_from_string(string_for_filename)
+        name = self.make_file_stem_from_string(string_for_filename)
         if not name:
             return None
         file_path = self._path / f"{name}{MEMO_EXTENSION}"
@@ -190,3 +191,26 @@ class MemoBook:
             path.unlink()
             return name
         return None
+
+    @staticmethod
+    def make_file_stem_from_string(from_string):
+        """Make a valid file name from a string.
+
+        Args:
+            from_string: The string to make the file name from.
+
+        Returns:
+            A valid file name without extension (stem only).
+        """
+        # filter out invalid characters
+        filename = "".join(c for c in from_string if c.isalnum() or c in "._- ()")
+        # strip spaces and dots
+        filename = filename.strip(" .")
+        # limit the filename length
+        # delete last word until the filename is short enough
+        while len(filename.split()) > 1 and len(filename) > MAX_FILENAME_LENGTH:
+            filename = " ".join(filename.split()[:-1])
+        if len(filename) > MAX_FILENAME_LENGTH:
+            filename = filename[:MAX_FILENAME_LENGTH]
+        # remove consecutive spaces
+        return " ".join(filename.split())

@@ -1,6 +1,9 @@
+- html from markdown rendering performance
 - WebView
     - TAB_TRAVERSAL
     - activate link
+    - error message
+- utils.py - unneseesary file?
 - manage memobooks
 - requests-html
 - error 403 forbiden
@@ -17,3 +20,52 @@
 - readability -- improove it
 - if unsuccessful memo rename, error message shown twice
 - button to copy code to clipboard
+
+##################################################################
+### WebView
+EnableHistory(self, enable=True)
+RemoveAllUserScripts(self)
+
+AddUserScript(self, javascript, injectionTime=WEBVIEW_INJECT_AT_DOCUMENT_START)
+Injects the specified script into the webpage’s content.
+Parameters
+javascript (string) – The javascript code to add.
+injectionTime (WebViewUserScriptInjectionTime) – Specifies when the script will be executed.
+Return type bool
+Returns True if the script was added successfully.
+Note Please note that this is unsupported by the IE backend and the Edge backend does only support wx.html2.WEBVIEW_INJECT_AT_DOCUMENT_START.
+
+RunScript(self, javascript)
+success, result = webview.RunScript(
+    "document.getElementById('some_id').innderHTML")
+
+if success:
+    ... result contains the contents of the given element ...
+
+else:
+    ... the element with self ID probably doesn't exist ...
+
+GetPageSource(self)
+
+
+------------------
+
+var article = new Readability(document).parse();
+    - charThreshold (number, default 500): the number of characters an article must have in order to return a result.
+
+parse()
+Returns an object containing the following properties:
+
+title: article title;
+content: HTML string of processed article content;
+textContent: text content of the article, with all the HTML tags removed;
+length: length of an article, in characters;
+excerpt: article description, or short excerpt from the content;
+byline: author metadata;
+dir: content direction;
+siteName: name of the site.
+lang: content language
+The parse() method works by modifying the DOM. This removes some elements in the web page, which may be undesirable. You can avoid this by passing the clone of the document object to the Readability constructor:
+
+var documentClone = document.cloneNode(true);
+var article = new Readability(documentClone).parse();
