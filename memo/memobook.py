@@ -124,7 +124,7 @@ class MemoBook:
 
     def get_memos_file_names(self) -> list:
         """Get the file names of all memos in the memo book."""
-        return [file.name for file in self._path.glob("*.md")]
+        return [file.name for file in self._path.glob(f"*{MEMO_EXTENSION}")]
 
     def get_memos_info(self) -> list:
         """Get all memos in the memo book as dicts.
@@ -174,7 +174,7 @@ class MemoBook:
         return [
             {"name": file.stem}
             for file in self._path.glob(f"*{MEMO_EXTENSION}")
-            if self.is_memo_matches_search(file.name, include=include, exclude=exclude, quick_search=quick_search)
+            if self.is_memo_matches_search(file.stem, include=include, exclude=exclude, quick_search=quick_search)
         ]
 
     def delete_memo(self, name: str) -> str:
