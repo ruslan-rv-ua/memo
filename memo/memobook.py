@@ -148,7 +148,7 @@ class MemoBook:
         """
         text = name
         if not quick_search:
-            text += (self._path / f"{name}{MEMO_EXTENSION}").read_text()
+            text += (self._path / f"{name}{MEMO_EXTENSION}").read_text(encoding="utf-8")
         text = text.lower()
         if include:
             for word in include:
