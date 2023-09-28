@@ -150,18 +150,12 @@ class MemoBookWindow(wx.Frame):
                 )
                 return
             self.memobook.delete_memo(memo["name"])
-            self._update_memos()
-            index = self._get_memo_index(name)
-            self.list_memos.Select(index)
-            self.list_memos.Focus(index)
+            self._update_memos(name)
 
         self.list_memos.SetColumns([ColumnDefn(_("Memo"), "left", 800, "name", valueSetter=rename_memo)])
 
         self._update_memos()
-        self._on_focus_memos_list(None)
-        if self.list_memos.GetItemCount() > 0:
-            self.list_memos.Select(0)
-            self.list_memos.Focus(0)
+        # if self.list_memos.GetItemCount() > 0:
 
     def _update_memos(self, name=None):
         """Update the list of memos.
@@ -186,6 +180,9 @@ class MemoBookWindow(wx.Frame):
                 include=include, exclude=exclude, quick_search=False
             )  # TODO: quick_search=True
         self.list_memos.SetObjects(self.data)
+        if len(self.data) == 0:
+            self.web_view.SetPage("<h1>No memos found</h1>", "")  # TODO: use "about app" page
+            return
         if name:
             index = self._get_memo_index(name)
             self.list_memos.Select(index)
@@ -237,10 +234,7 @@ class MemoBookWindow(wx.Frame):
             return
         markdown = edit_dlg.value
         name = self.memobook.add_memo(markdown=markdown, add_date_hashtag=True)
-        self._update_memos()
-        index = self._get_memo_index(name)
-        self.list_memos.Focus(index)
-        self.list_memos.Select(index)
+        self._update_memos(name)
 
     def _on_add_bookmark(self, event):
         """Add a bookmark."""
