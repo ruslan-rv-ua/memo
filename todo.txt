@@ -2,7 +2,6 @@
 - WebView
     - TAB_TRAVERSAL
     - activate link
-    - error message
 - utils.py - unneseesary file?
 - manage memobooks
 - external editors

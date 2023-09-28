@@ -2303,7 +2303,7 @@ if (typeof module === "object") {
   module.exports = Readability;
 }
 
-// var article = new Readability(document).parse();
-var documentClone = document.cloneNode(true);
-var article = new Readability(documentClone).parse();
+var article = new Readability(document).parse();
+// var documentClone = document.cloneNode(true);
+// var article = new Readability(documentClone).parse();
 article;

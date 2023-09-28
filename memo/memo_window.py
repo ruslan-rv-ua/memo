@@ -1,9 +1,9 @@
 """This module contains the GUI for the memo application."""
 
 import json
+from enum import Enum
 from gettext import gettext as _
 from pathlib import Path
-from time import sleep
 
 import wx
 import wx.html2
@@ -19,6 +19,13 @@ MIN_CHARS_TO_SEARCH = 5
 READABILITY_JS = (Path(__file__).parent / "Readability.js").read_text(encoding="utf-8")
 
 
+class WebviewAction(Enum):
+    """The actions that can be performed on the web view."""
+
+    NONE = 0
+    ADD_BOOKMARK = 1
+
+
 class MemoBookWindow(wx.Frame):
     """The main window of the MemoBook application."""
 
@@ -27,6 +34,7 @@ class MemoBookWindow(wx.Frame):
         style = wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.TAB_TRAVERSAL
         title = _("MemoBook")
         super().__init__(None, wx.ID_ANY, title, style=style)
+        self.web_view_action = WebviewAction.NONE
 
         self.init_ui()
         self._open_memobook(Path(r"e:\dev\memo\test_memobook"))
@@ -115,9 +123,11 @@ class MemoBookWindow(wx.Frame):
         self.panel.Layout()
         self.main_sizer.Fit(self.panel)
 
-        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
-
         self.Maximize(True)
+
+        # bind events
+        self.Bind(wx.html2.EVT_WEBVIEW_LOADED, self._on_web_view_loaded, self.web_view)
+        self.Bind(wx.html2.EVT_WEBVIEW_ERROR, self._on_web_view_error, self.web_view)
 
     def _open_memobook(self, memobook_path: Path):
         """Open the memobook at the given path."""
@@ -153,8 +163,12 @@ class MemoBookWindow(wx.Frame):
             self.list_memos.Select(0)
             self.list_memos.Focus(0)
 
-    def _update_memos(self):
-        """Update the list of memos."""
+    def _update_memos(self, name=None):
+        """Update the list of memos.
+
+        Args:
+            name: The name of the memo to select after updating the list.
+        """
         search_text = self.search_text.GetValue()
         if len(search_text) < MIN_CHARS_TO_SEARCH:
             self.data = self.memobook.get_memos_info()
@@ -172,6 +186,10 @@ class MemoBookWindow(wx.Frame):
                 include=include, exclude=exclude, quick_search=False
             )  # TODO: quick_search=True
         self.list_memos.SetObjects(self.data)
+        if name:
+            index = self._get_memo_index(name)
+            self.list_memos.Select(index)
+            self.list_memos.Focus(index)
 
     def _get_focused_list_item(self):
         """Get the file name of the focused memo.
@@ -227,31 +245,33 @@ class MemoBookWindow(wx.Frame):
     def _on_add_bookmark(self, event):
         """Add a bookmark."""
         # ask bookmark's URL
-        url = wx.GetTextFromUser(_("Enter the URL of the bookmark"), _("Add bookmark"), "")
+        self.url = wx.GetTextFromUser(_("Enter the URL of the bookmark"), _("Add bookmark"), "")
         # validate URL
         try:
-            url, domain_name = check_url(url)
-            if not url:
+            self.url, self.domain_name = check_url(self.url)
+            if not self.url:
                 wx.MessageBox(_("Invalid URL"), _("Error"), wx.OK | wx.ICON_ERROR)
                 return
         except TypeError:
             wx.MessageBox(_("Invalid URL"), _("Error"), wx.OK | wx.ICON_ERROR)
             return
 
-        self.web_view.ClearHistory()
+        self.web_view.LoadURL(self.url)
+        self.web_view_action = WebviewAction.ADD_BOOKMARK
+        return
 
-        # get page HTML
-        self.web_view.LoadURL(url)
-        for _nice_try in range(10):
-            page_html = self.web_view.GetPageSource()
-            if page_html:
-                break
-            sleep(1)
-        else:
-            wx.MessageBox(_("Could not get the page"), _("Error"), wx.OK | wx.ICON_ERROR)
-            return
+    def _on_web_view_loaded(self, event):
+        if self.web_view_action == WebviewAction.ADD_BOOKMARK:
+            self.web_view_action = WebviewAction.NONE
+            self._add_bookmark()
 
-        # inject Readability.js
+    def _on_web_view_error(self, event):
+        if self.web_view_action == WebviewAction.ADD_BOOKMARK:
+            wx.MessageBox(_("Could not load the page"), _("Error"), wx.OK | wx.ICON_ERROR)
+            self.web_view_action = WebviewAction.NONE
+
+    def _add_bookmark(self):
+        """Add a bookmark."""
         success, article_json = self.web_view.RunScript(READABILITY_JS)
         article = json.loads(article_json)
         if not success or not article_json:
@@ -260,19 +280,14 @@ class MemoBookWindow(wx.Frame):
 
         readable_html = article["content"]
         page_markdown = get_page_markdown(readable_html)
-        memo_title = f"{article['title']} ({domain_name})" if article["title"] else domain_name
-        memo_markdown = f"{page_markdown}\n\n<{url}>"
+        memo_title = f"{article['title']} ({self.domain_name})" if article["title"] else self.domain_name
+        memo_markdown = f"{page_markdown}\n\n<{self.url}>"
 
         # add bookmark
         name = self.memobook.add_memo(
             markdown=memo_markdown, name=memo_title, add_date_hashtag=True, extra_hashtags=["#bookmark"]
         )
-
-        self.web_view.SetPage("", "")
-        self._update_memos()
-        index = self._get_memo_index(name)
-        self.list_memos.Select(index)
-        self.list_memos.Focus(index)
+        self._update_memos(name)
 
     def _on_edit_memo(self, event):
         item = self._get_focused_list_item()
