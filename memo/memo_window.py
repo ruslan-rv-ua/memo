@@ -108,6 +108,7 @@ class MemoBookWindow(wx.Frame):
         )
         self.list_memos.SetEmptyListMsg(_("No memos found"))
         self.list_memos.Bind(wx.EVT_LIST_ITEM_FOCUSED, self._on_focus_memo)
+        self.list_memos.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self._on_activate_memo)
         self.left_sizer.Add(self.list_memos, 1, wx.ALL | wx.EXPAND, 5)
 
         ############################################################ right part
@@ -192,7 +193,7 @@ class MemoBookWindow(wx.Frame):
             self.list_memos.Focus(index)
 
     def _get_focused_list_item(self):
-        """Get the file name of the focused memo.
+        """Get the memo dict of the focused memo.
 
         Returns:
             The file name of the focused memo, or None if no memo is focused.
@@ -333,3 +334,12 @@ class MemoBookWindow(wx.Frame):
         markdown = self.memobook.get_memo_content(self._get_focused_list_item()["name"])
         html = memo_template.render(markdown=markdown)
         self.web_view.SetPage(html, "")
+
+    def _on_activate_memo(self, event):
+        """Open in browser first link in Web view."""
+        # get first link
+        success, first_link = self.web_view.RunScript("document.querySelector('a').href")
+        if not success:
+            return
+        # open link in browser
+        wx.LaunchDefaultBrowser(first_link)
