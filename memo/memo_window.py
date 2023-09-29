@@ -157,11 +157,12 @@ class MemoBookWindow(wx.Frame):
         self._update_memos()
         # if self.list_memos.GetItemCount() > 0:
 
-    def _update_memos(self, name=None):
+    def _update_memos(self, name=None, reset_search=False):
         """Update the list of memos.
 
         Args:
             name: The name of the memo to select after updating the list.
+            reset_search: Whether to reset the search text.
         """
         search_text = self.search_text.GetValue()
         if len(search_text) < MIN_CHARS_TO_SEARCH:
@@ -179,6 +180,8 @@ class MemoBookWindow(wx.Frame):
             self.data = self.memobook.search(
                 include=include, exclude=exclude, quick_search=False
             )  # TODO: quick_search=True
+        if reset_search:
+            self.search_text.SetValue("")
         self.list_memos.SetObjects(self.data)
         if len(self.data) == 0:
             self.web_view.SetPage("<h1>No memos found</h1>", "")  # TODO: use "about app" page
@@ -234,7 +237,7 @@ class MemoBookWindow(wx.Frame):
             return
         markdown = edit_dlg.value
         name = self.memobook.add_memo(markdown=markdown, add_date_hashtag=True)
-        self._update_memos(name)
+        self._update_memos(name, reset_search=True)
 
     def _on_add_bookmark(self, event):
         """Add a bookmark."""
@@ -281,7 +284,7 @@ class MemoBookWindow(wx.Frame):
         name = self.memobook.add_memo(
             markdown=memo_markdown, name=memo_title, add_date_hashtag=True, extra_hashtags=["#bookmark"]
         )
-        self._update_memos(name)
+        self._update_memos(name, reset_search=True)
 
     def _on_edit_memo(self, event):
         item = self._get_focused_list_item()
