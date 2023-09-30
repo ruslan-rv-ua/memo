@@ -12,13 +12,13 @@ class MemoManipulator:
     The first line is the title of the memo.
     """
 
-    def __init__(self, content: str = ""):
+    def __init__(self, markdown: str = ""):
         """Initialize a new instance of the Memo class.
 
         Args:
-            content (str): the content of the memo.
+            markdown (str): the content of the memo.
         """
-        self._lines = content.strip().splitlines()
+        self._lines = markdown.strip().splitlines()
 
     @classmethod
     def from_path(cls, path: Path):

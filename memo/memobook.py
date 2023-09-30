@@ -94,6 +94,24 @@ class MemoBook:
         memo.save(memo_path)
         return name
 
+    def add_memo_from_html(self, html: str, name: str = "", add_date_hashtag: bool = True, extra_hashtags=None) -> str:
+        """Add a new memo to the memo book from HTML.
+
+        Args:
+            html: The HTML of the memo.
+            name: The name of the memo. If empty, the title of the memo is used.
+            add_date_hashtag: If True, add the date as a hashtag.
+            extra_hashtags: Extra hashtags to add to the memo.
+
+        Returns:
+            The name of the added memo or None if the memo was not added.
+        """
+        markdown = self.html2text_parser.parse(html)
+        if not name:
+            memo_manipulator = MemoManipulator(markdown=markdown)
+            name = memo_manipulator.title
+        return self.add_memo(markdown, name=name, add_date_hashtag=add_date_hashtag, extra_hashtags=extra_hashtags)
+
     def update_memo(self, name: str, markdown: str) -> str:
         """Update a memo in the memo book.
 
@@ -114,7 +132,7 @@ class MemoBook:
             cached_path.unlink()
         return name
 
-    def get_memo_content(self, name: str) -> str:
+    def get_memo_markdown(self, name: str) -> str:
         """Get the content (markdonw) of a memo."""
         return self._get_memo_path(name).read_text(encoding="utf-8")
 

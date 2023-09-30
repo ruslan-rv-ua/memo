@@ -136,7 +136,7 @@ class MemoBookWindow(wx.Frame):
             new_name = new_name.strip()
             if not new_name or new_name == memo["name"]:
                 return
-            memo_content = self.memobook.get_memo_content(memo["name"])
+            memo_content = self.memobook.get_memo_markdown(memo["name"])
             name = self.memobook.add_memo(markdown=memo_content, name=new_name, add_date_hashtag=False)
             if name is None:
                 wx.MessageBox(
@@ -277,14 +277,14 @@ class MemoBookWindow(wx.Frame):
             return
 
         readable_html = article["content"]
-        page_markdown = self.memobook.html2markdown.parse(readable_html)
-        memo_title = f"{article['title']} ({self.domain_name})" if article["title"] else self.domain_name
-        memo_markdown = f"{page_markdown}\n\n<{self.url}>"
-
-        # add bookmark
-        name = self.memobook.add_memo(
-            markdown=memo_markdown, name=memo_title, add_date_hashtag=True, extra_hashtags=[_("#bookmark")]
+        name = f"{article['title']} ({self.domain_name})" if article["title"] else self.domain_name
+        name = self.memobook.add_memo_from_html(
+            html=readable_html, name=name, add_date_hashtag=True, extra_hashtags=[_("#bookmark")]
         )
+        parsed_markdown = self.memobook.get_memo_markdown(name)
+        memo_markdown = f"{self.url}>\n\n<{parsed_markdown}"
+        self.memobook.update_memo(name=name, markdown=memo_markdown)
+
         self._update_memos(name, reset_search=True)
 
     def _on_edit_memo(self, event):
@@ -292,7 +292,7 @@ class MemoBookWindow(wx.Frame):
         if not item:
             return
         name = item["name"]
-        content = self.memobook.get_memo_content(name)
+        content = self.memobook.get_memo_markdown(name)
         edit_dlg = EditorDialog(parent=self, title=_("Edit memo"), value=content)
         if edit_dlg.ShowModal() != wx.ID_OK:
             return
