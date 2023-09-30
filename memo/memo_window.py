@@ -283,7 +283,7 @@ class MemoBookWindow(wx.Frame):
 
         # add bookmark
         name = self.memobook.add_memo(
-            markdown=memo_markdown, name=memo_title, add_date_hashtag=True, extra_hashtags=["#bookmark"]
+            markdown=memo_markdown, name=memo_title, add_date_hashtag=True, extra_hashtags=[_("#bookmark")]
         )
         self._update_memos(name, reset_search=True)
 
