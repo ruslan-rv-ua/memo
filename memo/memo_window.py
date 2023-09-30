@@ -282,7 +282,7 @@ class MemoBookWindow(wx.Frame):
             html=readable_html, name=name, add_date_hashtag=True, extra_hashtags=[_("#bookmark")]
         )
         parsed_markdown = self.memobook.get_memo_markdown(name)
-        memo_markdown = f"{self.url}>\n\n<{parsed_markdown}"
+        memo_markdown = f"<{self.url}>\n\n{parsed_markdown}"
         self.memobook.update_memo(name=name, markdown=memo_markdown)
 
         self._update_memos(name, reset_search=True)
