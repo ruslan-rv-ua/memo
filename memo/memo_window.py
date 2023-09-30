@@ -196,16 +196,16 @@ class MemoBookWindow(wx.Frame):
         self.list_memos.Focus(focus_on)
         return
 
-    def _get_focused_list_item(self):
-        """Get the memo dict of the focused memo.
+    def _get_focused_memo(self):
+        """Get the focused memo.
 
         Returns:
-            The file name of the focused memo, or None if no memo is focused.
+            The focused memo, or None if no memo was focused.
         """
-        focused_item_index = self.list_memos.GetFocusedItem()
-        if focused_item_index == -1:
+        focused_memo_index = self.list_memos.GetFocusedItem()
+        if focused_memo_index == -1:
             return None
-        return self.data[focused_item_index]
+        return self.data[focused_memo_index]
 
     def _get_memo_index(self, name: str):
         """Get the index of the memo with the given name.
@@ -294,7 +294,7 @@ class MemoBookWindow(wx.Frame):
         self._update_memos(name)
 
     def _on_edit_memo(self, event):
-        item = self._get_focused_list_item()
+        item = self._get_focused_memo()
         if not item:
             return
         name = item["name"]
@@ -330,7 +330,7 @@ class MemoBookWindow(wx.Frame):
 
     def _on_focus_memo(self, event):
         """Select a memo."""
-        item = self._get_focused_list_item()  # TODO: rename
+        item = self._get_focused_memo()
         html = self.memobook.get_memo_html(item["name"])
         self.web_view.SetPage(html, "")
 
