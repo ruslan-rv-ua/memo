@@ -152,21 +152,18 @@ class MemoBookWindow(wx.Frame):
             self._update_memos(name)
 
         self.list_memos.SetColumns([ColumnDefn(_("Memo"), "left", 800, "name", valueSetter=rename_memo)])
+        self._update_memos(focus_on=0)
 
-        self._update_memos()
-        if self.list_memos.GetItemCount() > 0:
-            self.list_memos.Focus(0)
-            self.list_memos.Select(0)
-
-    def _update_memos(self, name=None, reset_search=False):
+    def _update_memos(self, focus_on: str | int | None = None):
         """Update the list of memos.
 
         Args:
-            name: The name of the memo to select after updating the list.
-            reset_search: Whether to reset the search text.
+            focus_on: The item to focus on.
+                If None, the focus will be not changed.
+                If an int, the index of the item to focus on.
+                If a str, the name of the memo to focus on.
+                If True, the search text will be reset to an empty string and first item will be focused.
         """
-        if reset_search:
-            self.search_text.SetValue("")
         search_text = self.search_text.GetValue()
         if len(search_text) < MIN_CHARS_TO_SEARCH:
             self.data = self.memobook.get_memos()
@@ -187,10 +184,17 @@ class MemoBookWindow(wx.Frame):
         if len(self.data) == 0:
             self.web_view.SetPage("<h1>No memos found</h1>", "")  # TODO: use "about app" page
             return
-        if name:
-            index = self._get_memo_index(name)
-            self.list_memos.Select(index)
-            self.list_memos.Focus(index)
+        if focus_on is None:
+            return
+        if isinstance(focus_on, str):
+            focus_on = self._get_memo_index(focus_on)
+            if focus_on is None:
+                focus_on = 0
+        else:  # int, in range [0, len(self.data) - 1]
+            focus_on = max(0, min(focus_on, len(self.data) - 1))
+        self.list_memos.Select(focus_on)
+        self.list_memos.Focus(focus_on)
+        return
 
     def _get_focused_list_item(self):
         """Get the memo dict of the focused memo.
@@ -230,7 +234,7 @@ class MemoBookWindow(wx.Frame):
 
     def _on_reset_search_results(self, event):
         self.search_text.SetValue("")
-        self._update_memos()
+        self._update_memos(focus_on=0)
 
     def _on_add_memo(self, event):
         edit_dlg = EditorDialog(parent=self, title=_("Add memo"), value="")
@@ -238,7 +242,8 @@ class MemoBookWindow(wx.Frame):
             return
         markdown = edit_dlg.value
         name = self.memobook.add_memo(markdown=markdown, add_date_hashtag=True)
-        self._update_memos(name, reset_search=True)
+        self._on_reset_search_results(None)
+        self._update_memos(name)
 
     def _on_add_bookmark(self, event):
         """Add a bookmark."""
@@ -285,7 +290,8 @@ class MemoBookWindow(wx.Frame):
         memo_markdown = f"<{self.url}>\n\n{parsed_markdown}"
         self.memobook.update_memo(name=name, markdown=memo_markdown)
 
-        self._update_memos(name, reset_search=True)
+        self._on_reset_search_results(None)
+        self._update_memos(name)
 
     def _on_edit_memo(self, event):
         item = self._get_focused_list_item()
@@ -298,8 +304,7 @@ class MemoBookWindow(wx.Frame):
             return
         markdown = edit_dlg.value
         name = self.memobook.update_memo(name=name, markdown=markdown)
-        self.list_memos.Select(self._get_memo_index(name))
-        self._update_memos()
+        self._update_memos(name)
 
     def _on_delete_memos(self, event):
         # get selected memos
@@ -319,13 +324,7 @@ class MemoBookWindow(wx.Frame):
         focused_item_index = self.list_memos.GetFocusedItem()
         for item in selected_items:
             self.memobook.delete_memo(item["name"])
-        self._update_memos()
-        if focused_item_index < self.list_memos.GetItemCount():  # TODO: check this
-            self.list_memos.Focus(focused_item_index)
-            self.list_memos.Select(focused_item_index)
-        else:
-            self.list_memos.Focus(focused_item_index - 1)
-            self.list_memos.Select(focused_item_index - 1)
+        self._update_memos(focus_on=focused_item_index)
 
     ######################################## list events
 
