@@ -1,4 +1,4 @@
-- html from markdown rendering performance
+- i18n for bookmark hashtag
 - manage memobooks
 - external editors
 - edit memobook settings

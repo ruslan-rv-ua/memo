@@ -3,7 +3,8 @@
 from datetime import datetime
 from pathlib import Path
 
-from memo_item import Memo
+from memo_item import MemoManipulator
+from templates import memo_template
 from utils import HTML2MarkdownParser, Settings
 
 MAX_FILENAME_LENGTH = 200
@@ -33,8 +34,10 @@ class MemoBook:
     def __init__(self, path: Path) -> None:
         """Create or open a memo book at the given path."""
         self._path = path
+        self._settings_path = path / ".settings"
+        self._cache_path = path / ".cache"
 
-        self.settings = Settings(path / ".settings", default=DEFAULT_MEMOBOOK_SETTINGS)
+        self.settings = Settings(self._settings_path, default=DEFAULT_MEMOBOOK_SETTINGS)
         self.html2text_parser = HTML2MarkdownParser()
         self.html2text_parser.update_params(self.settings["html2text"])
 
@@ -42,6 +45,14 @@ class MemoBook:
     def path(self) -> Path:
         """The path to the memo book."""
         return self._path
+
+    def _get_memo_path(self, name: str) -> Path:
+        """Get the path to a memo."""
+        return self._path / f"{name}{MEMO_EXTENSION}"
+
+    def _get_cached_memo_path(self, name: str) -> Path:
+        """Get the path to a cached memo."""
+        return self._cache_path / f"{name}.html"
 
     ########################################
     # Memos
@@ -59,7 +70,7 @@ class MemoBook:
         Returns:
             The name of the added memo or None if the memo was not added.
         """
-        memo = Memo(markdown)
+        memo = MemoManipulator(markdown)
 
         # set hashtags
         hashtags = set()
@@ -75,12 +86,12 @@ class MemoBook:
         name = self.make_file_stem_from_string(string_for_filename)
         if not name:
             return None
-        file_path = self._path / f"{name}{MEMO_EXTENSION}"
-        if file_path.exists():
+        memo_path = self._get_memo_path(name)
+        if memo_path.exists():
             # add timestamp to the file name
             name = f"{name}_{datetime.now().strftime('%Y%m%d%H%M%S')}"  # noqa: DTZ005
-            file_path = self._path / f"{name}{MEMO_EXTENSION}"
-        memo.save(file_path)
+            memo_path = self._get_memo_path(name)
+        memo.save(memo_path)
         return name
 
     def update_memo(self, name: str, markdown: str) -> str:
@@ -93,26 +104,25 @@ class MemoBook:
         Returns:
             The name of the updated memo or None if the memo was not found.
         """
-        path = self._path / f"{name}{MEMO_EXTENSION}"
-        if not path.exists():
+        memo_path = self._get_memo_path(name)
+        if not memo_path.exists():
             return None
-        memo = Memo(markdown)
-        memo.save(path)
+        memo = MemoManipulator(markdown)
+        memo.save(memo_path)
+        cached_path = self._get_cached_memo_path(name)
+        if cached_path.exists():
+            cached_path.unlink()
         return name
 
-    def get_memo(self, name: str) -> Memo:
-        """Get a memo from the memo book."""
-        return Memo.from_path(self._path / f"{name}{MEMO_EXTENSION}")
-
     def get_memo_content(self, name: str) -> str:
-        """Get the content of a memo from the memo book."""
-        return (self._path / f"{name}{MEMO_EXTENSION}").read_text(encoding="utf-8")
+        """Get the content (markdonw) of a memo."""
+        return self._get_memo_path(name).read_text(encoding="utf-8")
 
     def get_memos_file_names(self) -> list:
         """Get the file names of all memos in the memo book."""
         return [file.name for file in self._path.glob(f"*{MEMO_EXTENSION}")]
 
-    def get_memos_info(self) -> list:
+    def get_memos(self) -> list:
         """Get all memos in the memo book as dicts.
 
         Returns:
@@ -172,26 +182,31 @@ class MemoBook:
         Returns:
             The name of the deleted memo or None if the memo was not found.
         """
-        path = self._path / f"{name}{MEMO_EXTENSION}"
-        if path.exists():
-            path.unlink()
-            return name
-        return None
+        memo_path = self._get_memo_path(name)
+        if not memo_path.exists():
+            return None
+        cached_path = self._get_cached_memo_path(name)
+        if cached_path.exists():
+            cached_path.unlink()
+        memo_path.unlink()
+        return name
 
     def get_memo_html(self, name: str) -> str:
         """Get the HTML of a memo from the memo book.
 
-        TODO: use cache for increased performance.
-
         Args:
             name: The name of the memo.
 
-
         Returns:
-            The HTML of the memo.
+            The renedered HTML of the memo.
         """
-        markdown = (self._path / f"{name}{MEMO_EXTENSION}").read_text(encoding="utf-8")
-        return self.html2text_parser.parse(markdown)
+        cached_path = self._get_cached_memo_path(name)
+        if cached_path.exists():
+            return cached_path.read_text(encoding="utf-8")
+        markdown = self._get_memo_path(name).read_text(encoding="utf-8")
+        html = memo_template.render(markdown=markdown)
+        cached_path.write_text(html, encoding="utf-8")
+        return html
 
     @staticmethod
     def make_file_stem_from_string(from_string):
