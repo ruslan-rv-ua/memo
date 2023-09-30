@@ -3,44 +3,28 @@
 from datetime import datetime
 from pathlib import Path
 
-from benedict import benedict
-
 from memo_item import Memo
+from utils import HTML2MarkdownParser, Settings
 
 MAX_FILENAME_LENGTH = 200
-
-DEFAULT_MEMOBOOK_SETTINGS = {
-    "memos": {
-        "columns": {
-            "file_name": {"width": 0},
-            "title": {"width": 0},
-            "type": {"width": 0},
-            "date": {"width": 0},
-        },
-        "sort": {"column": "date", "order": "desc"},
-    }
-}
-
 MEMO_EXTENSION = ".md"
 
+DEFAULT_HTML2TEXT_SETTINGS = {
+    "unicode_snob": True,
+    "slip_internal_links": True,
+    "protect_links": False,
+    "ignore_anchors": True,
+    "ignore_emphasis": True,
+    "mark_code": False,
+    "ignore_links": True,
+    "ignore_images": True,
+    "ignore_tables": False,
+}
 
-class MemoBookSettings(benedict):
-    """The settings of a memo book."""
 
-    def __init__(self, path: Path) -> None:
-        """Create or open the settings of a memo book at the given path."""
-        settings_path = path / ".settings"
-        if settings_path.exists():
-            super().__init__(str(settings_path), format="json", keypath_separator=None)
-        else:
-            super().__init__({})
-            self.update(DEFAULT_MEMOBOOK_SETTINGS)
-        self.__settings_path = settings_path
-        self.save()
-
-    def save(self):
-        """Save the settings."""
-        self.to_json(filepath=self.__settings_path, ensure_ascii=False, indent=4)  # TODO: no indent, no ensure_ascii
+DEFAULT_MEMOBOOK_SETTINGS = {
+    "html2text": DEFAULT_HTML2TEXT_SETTINGS,
+}
 
 
 class MemoBook:
@@ -50,7 +34,9 @@ class MemoBook:
         """Create or open a memo book at the given path."""
         self._path = path
 
-        self.settings = MemoBookSettings(path)
+        self.settings = Settings(path / ".settings", default=DEFAULT_MEMOBOOK_SETTINGS)
+        self.html2text_parser = HTML2MarkdownParser()
+        self.html2text_parser.update_params(self.settings["html2text"])
 
     @property
     def path(self) -> Path:
@@ -191,6 +177,21 @@ class MemoBook:
             path.unlink()
             return name
         return None
+
+    def get_memo_html(self, name: str) -> str:
+        """Get the HTML of a memo from the memo book.
+
+        TODO: use cache for increased performance.
+
+        Args:
+            name: The name of the memo.
+
+
+        Returns:
+            The HTML of the memo.
+        """
+        markdown = (self._path / f"{name}{MEMO_EXTENSION}").read_text(encoding="utf-8")
+        return self.html2text_parser.parse(markdown)
 
     @staticmethod
     def make_file_stem_from_string(from_string):

@@ -1,8 +1,4 @@
 - html from markdown rendering performance
-- WebView
-    - TAB_TRAVERSAL
-    - activate link
-- utils.py - unneseesary file?
 - manage memobooks
 - external editors
 - edit memobook settings

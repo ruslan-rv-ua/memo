@@ -13,7 +13,6 @@ from ObjectListView import ColumnDefn, FastObjectListView
 from editor_window import EditorDialog
 from memobook import MemoBook
 from templates import memo_template
-from utils import get_page_markdown
 
 MIN_CHARS_TO_SEARCH = 5
 READABILITY_JS = (Path(__file__).parent / "Readability.js").read_text(encoding="utf-8")
@@ -277,7 +276,7 @@ class MemoBookWindow(wx.Frame):
             return
 
         readable_html = article["content"]
-        page_markdown = get_page_markdown(readable_html)
+        page_markdown = self.memobook.html2markdown.parse(readable_html)
         memo_title = f"{article['title']} ({self.domain_name})" if article["title"] else self.domain_name
         memo_markdown = f"{page_markdown}\n\n<{self.url}>"
 
