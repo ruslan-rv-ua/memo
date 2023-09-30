@@ -3,7 +3,10 @@
 from datetime import datetime
 from pathlib import Path
 
+from diskcache import Cache
+
 from memo_item import Memo
+from templates import memo_template
 from utils import HTML2MarkdownParser, Settings
 
 MAX_FILENAME_LENGTH = 200
@@ -33,10 +36,14 @@ class MemoBook:
     def __init__(self, path: Path) -> None:
         """Create or open a memo book at the given path."""
         self._path = path
+        self._settings_path = path / ".settings"
+        self._cache_path = path / ".cache"
 
-        self.settings = Settings(path / ".settings", default=DEFAULT_MEMOBOOK_SETTINGS)
+        self.settings = Settings(self._settings_path, default=DEFAULT_MEMOBOOK_SETTINGS)
         self.html2text_parser = HTML2MarkdownParser()
         self.html2text_parser.update_params(self.settings["html2text"])
+
+        self._cache = Cache(self._cache_path)
 
     @property
     def path(self) -> Path:
@@ -190,8 +197,12 @@ class MemoBook:
         Returns:
             The HTML of the memo.
         """
+        if name in self._cache:
+            return self._cache[name]
         markdown = (self._path / f"{name}{MEMO_EXTENSION}").read_text(encoding="utf-8")
-        return self.html2text_parser.parse(markdown)
+        html = memo_template.render(markdown=markdown)
+        self._cache[name] = html
+        return html
 
     @staticmethod
     def make_file_stem_from_string(from_string):

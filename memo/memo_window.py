@@ -12,7 +12,6 @@ from ObjectListView import ColumnDefn, FastObjectListView
 
 from editor_window import EditorDialog
 from memobook import MemoBook
-from templates import memo_template
 
 MIN_CHARS_TO_SEARCH = 5
 READABILITY_JS = (Path(__file__).parent / "Readability.js").read_text(encoding="utf-8")
@@ -321,7 +320,7 @@ class MemoBookWindow(wx.Frame):
         for item in selected_items:
             self.memobook.delete_memo(item["name"])
         self._update_memos()
-        if focused_item_index < self.list_memos.GetItemCount():
+        if focused_item_index < self.list_memos.GetItemCount():  # TODO: check this
             self.list_memos.Focus(focused_item_index)
             self.list_memos.Select(focused_item_index)
         else:
@@ -332,8 +331,8 @@ class MemoBookWindow(wx.Frame):
 
     def _on_focus_memo(self, event):
         """Select a memo."""
-        markdown = self.memobook.get_memo_content(self._get_focused_list_item()["name"])
-        html = memo_template.render(markdown=markdown)
+        item = self._get_focused_list_item()  # TODO: rename
+        html = self.memobook.get_memo_html(item["name"])
         self.web_view.SetPage(html, "")
 
     def _on_activate_memo(self, event):
