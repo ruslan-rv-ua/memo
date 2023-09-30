@@ -5,7 +5,7 @@ from pathlib import Path
 HASHTAGS_LINE_PREFIX = "Hashtags: "
 
 
-class Memo:
+class MemoManipulator:
     """A memo.
 
     The memo is a text file with markdown syntax.

@@ -169,7 +169,7 @@ class MemoBookWindow(wx.Frame):
             self.search_text.SetValue("")
         search_text = self.search_text.GetValue()
         if len(search_text) < MIN_CHARS_TO_SEARCH:
-            self.data = self.memobook.get_memos_info()
+            self.data = self.memobook.get_memos()
         else:
             search_words = search_text.lower().split()
             include = []
@@ -292,8 +292,8 @@ class MemoBookWindow(wx.Frame):
         if not item:
             return
         name = item["name"]
-        memo = self.memobook.get_memo(name)
-        edit_dlg = EditorDialog(parent=self, title=_("Edit memo"), value=memo.content)
+        content = self.memobook.get_memo_content(name)
+        edit_dlg = EditorDialog(parent=self, title=_("Edit memo"), value=content)
         if edit_dlg.ShowModal() != wx.ID_OK:
             return
         markdown = edit_dlg.value
