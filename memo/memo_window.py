@@ -155,7 +155,9 @@ class MemoBookWindow(wx.Frame):
         self.list_memos.SetColumns([ColumnDefn(_("Memo"), "left", 800, "name", valueSetter=rename_memo)])
 
         self._update_memos()
-        # if self.list_memos.GetItemCount() > 0:
+        if self.list_memos.GetItemCount() > 0:
+            self.list_memos.Focus(0)
+            self.list_memos.Select(0)
 
     def _update_memos(self, name=None, reset_search=False):
         """Update the list of memos.
@@ -164,6 +166,8 @@ class MemoBookWindow(wx.Frame):
             name: The name of the memo to select after updating the list.
             reset_search: Whether to reset the search text.
         """
+        if reset_search:
+            self.search_text.SetValue("")
         search_text = self.search_text.GetValue()
         if len(search_text) < MIN_CHARS_TO_SEARCH:
             self.data = self.memobook.get_memos_info()
@@ -180,8 +184,6 @@ class MemoBookWindow(wx.Frame):
             self.data = self.memobook.search(
                 include=include, exclude=exclude, quick_search=False
             )  # TODO: quick_search=True
-        if reset_search:
-            self.search_text.SetValue("")
         self.list_memos.SetObjects(self.data)
         if len(self.data) == 0:
             self.web_view.SetPage("<h1>No memos found</h1>", "")  # TODO: use "about app" page
