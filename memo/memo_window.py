@@ -92,6 +92,16 @@ class MemoBookWindow(wx.Frame):
         self.menubar = wx.MenuBar()
         self.SetMenuBar(self.menubar)
 
+        # memobooks menu
+        self.menu_memobooks = wx.Menu()
+
+        self.menu_memobooks_manage_memobooks = self.menu_memobooks.Append(wx.ID_ANY, _("Manage memobooks\tCtrl+M"))
+        self.Bind(wx.EVT_MENU, self._on_manage_memobooks, self.menu_memobooks_manage_memobooks)
+
+        self.menu_memobooks.AppendSeparator()
+
+        self.menubar.Append(self.menu_memobooks, _("MemoBooks"))
+
         # View menu
         self.menu_view = wx.Menu()
 
@@ -114,16 +124,16 @@ class MemoBookWindow(wx.Frame):
         # Memo menu
         self.menu_memo = wx.Menu()
 
-        self.menu_memo_add_memo = self.menu_memo.Append(wx.ID_ANY, _("Add memo\tCtrl+M"))
+        self.menu_memo_add_memo = self.menu_memo.Append(wx.ID_ANY, _("Add note\tCtrl+N"))
         self.Bind(wx.EVT_MENU, self._on_add_memo, self.menu_memo_add_memo)
 
         self.menu_memo_add_bookmark = self.menu_memo.Append(wx.ID_ANY, _("Add bookmark\tCtrl+B"))
         self.Bind(wx.EVT_MENU, self._on_add_bookmark, self.menu_memo_add_bookmark)
 
-        self.menu_memo_edit_memo = self.menu_memo.Append(wx.ID_ANY, _("Edit memo\tF4"))
+        self.menu_memo_edit_memo = self.menu_memo.Append(wx.ID_ANY, _("Edit\tF4"))
         self.Bind(wx.EVT_MENU, self._on_edit_memo, self.menu_memo_edit_memo)
 
-        self.menu_memo_delete_memos = self.menu_memo.Append(wx.ID_ANY, _("Delete selected memos\tDel"))
+        self.menu_memo_delete_memos = self.menu_memo.Append(wx.ID_ANY, _("Delete selected\tDel"))
         self.Bind(wx.EVT_MENU, self._on_delete_memos, self.menu_memo_delete_memos)
 
         self.menubar.Append(self.menu_memo, _("Memo"))
@@ -378,6 +388,14 @@ class MemoBookWindow(wx.Frame):
         for item in selected_items:
             self.memobook.delete_memo(item["name"])
         self._update_memos(focus_on=focused_item_index)
+
+    def _on_manage_memobooks(self, event):
+        """Open the manage memobooks dialog."""
+        return
+        from manage_memobooks_dialog import ManageMemoBooksDialog
+
+        dlg = ManageMemoBooksDialog(parent=self, memobooks_dir=self.memobooks_dir)
+        dlg.ShowModal()
 
     ######################################## list events
 
