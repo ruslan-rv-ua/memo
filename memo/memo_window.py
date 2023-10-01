@@ -27,6 +27,11 @@ DEFAULT_APP_SETTINGS = {
             "path": None,  # if None, the memobook is stored in the memobooks directory
             "is_protected": True,
         },
+        {
+            "name": "Old Home",
+            "path": r"e:\1\Old Home",
+            "is_protected": False,
+        },
     ],
 }
 
@@ -80,13 +85,31 @@ class MemoBookWindow(wx.Frame):
         memobook_name = self.settings["last_opened_memobook"]
         for memobook in self.settings["memobooks"]:
             if memobook["name"] == memobook_name:
-                memobook_path = memobook["path"]
-                if memobook_path is None:
-                    memobook_path = self.memobooks_dir / memobook["name"]
+                memobook_path = Path(memobook["path"]) if memobook["path"] else self.memobooks_dir / memobook["name"]
                 self._open_memobook(memobook_path)
                 break
         else:
             self._open_memobook(home_memobook_path)
+
+    def _build_memobooks_menu(self):
+        """Build the memobooks menu."""
+        # clear menu
+        for item in self.menu_memobooks.GetMenuItems():
+            self.menu_memobooks.Delete(item)
+
+        self.menu_memobooks_manage_memobooks = self.menu_memobooks.Append(wx.ID_ANY, _("Manage memobooks\tCtrl+M"))
+        self.Bind(wx.EVT_MENU, self._on_manage_memobooks, self.menu_memobooks_manage_memobooks)
+        self.menu_memobooks.AppendSeparator()
+        for i, memobook in enumerate(self.settings["memobooks"], start=1):
+            # translators: This is the name of a memobook.
+            menu_item = self.menu_memobooks.AppendRadioItem(wx.ID_ANY, memobook["name"] + f"\tCtrl+{i}")
+            menu_item.Check(memobook["name"] == self.settings["last_opened_memobook"])
+            memobook_path = Path(memobook["path"]) if memobook["path"] else self.memobooks_dir / memobook["name"]
+            self.Bind(
+                wx.EVT_MENU,
+                lambda event, memobook_path=memobook_path: self._open_memobook(memobook_path),
+                menu_item,
+            )
 
     def _setup_menu(self):
         self.menubar = wx.MenuBar()
@@ -94,12 +117,6 @@ class MemoBookWindow(wx.Frame):
 
         # memobooks menu
         self.menu_memobooks = wx.Menu()
-
-        self.menu_memobooks_manage_memobooks = self.menu_memobooks.Append(wx.ID_ANY, _("Manage memobooks\tCtrl+M"))
-        self.Bind(wx.EVT_MENU, self._on_manage_memobooks, self.menu_memobooks_manage_memobooks)
-
-        self.menu_memobooks.AppendSeparator()
-
         self.menubar.Append(self.menu_memobooks, _("MemoBooks"))
 
         # View menu
@@ -141,6 +158,7 @@ class MemoBookWindow(wx.Frame):
     def init_ui(self):
         """Initialize the user interface."""
         self._setup_menu()
+        self._build_memobooks_menu()
 
         self.panel = wx.Panel(self, wx.ID_ANY)
         self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -212,8 +230,11 @@ class MemoBookWindow(wx.Frame):
             self.memobook.delete_memo(memo["name"])
             self._update_memos(name)
 
+        self.list_memos.SetFocus()
         self.list_memos.SetColumns([ColumnDefn(_("Memo"), "left", 800, "name", valueSetter=rename_memo)])
         self._update_memos(focus_on=0)
+        self.settings["last_opened_memobook"] = self.memobook.name
+        self.settings.save()
 
     def _update_memos(self, focus_on: str | int | None = None):
         """Update the list of memos.
