@@ -249,6 +249,8 @@ class MemoBookWindow(wx.Frame):
         """Add a bookmark."""
         # ask bookmark's URL
         self.url = wx.GetTextFromUser(_("Enter the URL of the bookmark"), _("Add bookmark"), "")
+        if not self.url:
+            return
         # validate URL
         try:
             self.url, self.domain_name = check_url(self.url)
