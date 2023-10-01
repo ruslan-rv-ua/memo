@@ -13,6 +13,7 @@ from ObjectListView import ColumnDefn, FastObjectListView
 from editor_window import EditorDialog
 from memobook import MemoBook
 
+MEMOBOOKS_DIR_NAME = "memobooks"
 MIN_CHARS_TO_SEARCH = 5
 READABILITY_JS = (Path(__file__).parent / "Readability.js").read_text(encoding="utf-8")
 
@@ -27,11 +28,27 @@ class WebviewAction(Enum):
 class MemoBookWindow(wx.Frame):
     """The main window of the MemoBook application."""
 
-    def __init__(self):
-        """Create the main window."""
+    def __init__(self, work_dir: Path):
+        """Create the main window.
+
+        Args:
+            work_dir: The path to the directory where the memobook is stored.
+        """
         style = wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.TAB_TRAVERSAL
         title = _("MemoBook")
         super().__init__(None, wx.ID_ANY, title, style=style)
+
+        self.work_dir = work_dir
+
+        self.memobooks_dir = self.work_dir / MEMOBOOKS_DIR_NAME
+        if not self.memobooks_dir.exists():  # close the application
+            wx.MessageBox(
+                _("The memobooks directory does not exist. Please create it and restart the application."),
+                _("Error"),
+                wx.OK | wx.ICON_ERROR,
+            )
+            self.Close()
+
         self.web_view_action = WebviewAction.NONE
 
         self.init_ui()
