@@ -35,16 +35,21 @@ class MemoBook:
         """Create or open a memo book at the given path."""
         self._path = path
         self._settings_path = path / ".settings"
-        self._cache_path = path / ".cache"
-
         self.settings = Settings(self._settings_path, default=DEFAULT_MEMOBOOK_SETTINGS)
         self.html2text_parser = HTML2MarkdownParser()
         self.html2text_parser.update_params(self.settings["html2text"])
+        self._cache_path = path / ".cache"
+        self._cache_path.mkdir(parents=True, exist_ok=True)
 
     @property
     def path(self) -> Path:
         """The path to the memo book."""
         return self._path
+
+    @property
+    def name(self) -> str:
+        """The name of the memo book."""
+        return self._path.name
 
     def _get_memo_path(self, name: str) -> Path:
         """Get the path to a memo."""
@@ -248,3 +253,12 @@ class MemoBook:
             filename = filename[:MAX_FILENAME_LENGTH]
         # remove consecutive spaces
         return " ".join(filename.split())
+
+    ########################################
+    @classmethod
+    def create(cls, path: Path) -> "MemoBook":
+        """Create a new memo book at the given path."""
+        if path.exists():
+            raise FileExistsError(f"Path {path} already exists.")
+        path.mkdir(parents=True)
+        return cls(path)

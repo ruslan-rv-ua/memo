@@ -12,10 +12,23 @@ from ObjectListView import ColumnDefn, FastObjectListView
 
 from editor_window import EditorDialog
 from memobook import MemoBook
+from utils import Settings
 
 MEMOBOOKS_DIR_NAME = "memobooks"
 MIN_CHARS_TO_SEARCH = 5
 READABILITY_JS = (Path(__file__).parent / "Readability.js").read_text(encoding="utf-8")
+
+DEFAULT_APP_SETTINGS = {
+    "last_opened_memobook": None,
+    "memobooks": [
+        {
+            # translators: This is the name of the default memobook.
+            "name": _("Home"),
+            "path": None,  # if None, the memobook is stored in the memobooks directory
+            "is_protected": True,
+        },
+    ],
+}
 
 
 class WebviewAction(Enum):
@@ -49,10 +62,31 @@ class MemoBookWindow(wx.Frame):
             )
             self.Close()
 
+        self.settings_file = self.work_dir / ".settings"
+        self.settings = Settings(self.settings_file, default=DEFAULT_APP_SETTINGS)
+
         self.web_view_action = WebviewAction.NONE
 
         self.init_ui()
-        self._open_memobook(Path(r"e:\dev\memo\test_memobook"))
+
+        # create home memobook if it does not exist
+        home_memobook_path = self.memobooks_dir / self.settings["memobooks"][0]["name"]
+        if not home_memobook_path.exists():
+            home_memobook = MemoBook.create(home_memobook_path)
+            self.settings["last_opened_memobook"] = home_memobook.name
+            self.settings.save()
+
+        # open last opened memobook
+        memobook_name = self.settings["last_opened_memobook"]
+        for memobook in self.settings["memobooks"]:
+            if memobook["name"] == memobook_name:
+                memobook_path = memobook["path"]
+                if memobook_path is None:
+                    memobook_path = self.memobooks_dir / memobook["name"]
+                self._open_memobook(memobook_path)
+                break
+        else:
+            self._open_memobook(home_memobook_path)
 
     def _setup_menu(self):
         self.menubar = wx.MenuBar()
