@@ -338,9 +338,11 @@ class MemoBookWindow(wx.Frame):
 
     def _on_activate_memo(self, event):
         """Open in browser first link in Web view."""
-        # get first link
-        success, first_link = self.web_view.RunScript("document.querySelector('a').href")
-        if not success:
+        success, first_link = self.web_view.RunScript(
+            """var first_link="";var links=document.getElementsByTagName("a");"""
+            """if(links.length>0){first_link=links[0].href;}first_link;"""
+        )
+        if not success or not first_link:
             return
         # open link in browser
         wx.LaunchDefaultBrowser(first_link)
