@@ -1,7 +1,20 @@
-- i18n for bookmark hashtag
+- try when parsed:
+    textContent: text content of the article, with all the HTML tags removed;
+    length: length of an article, in characters;
+    excerpt: article description, or short excerpt from the content;
+    siteName: name of the site.
 - manage memobooks
-- external editors
+    - working dir
+    - program settings
+    - folder for internal memobooks
+    - manage memobooks dialog
+    - memobook data:
+        - name, same
+        - location: internal / external
 - edit memobook settings
+    - ask ro not to add very large parsed bookmark text
+    - what to include when parseing (description, full content, ...)
+- external editors
 - export
 - import
 - other file types: html, doc, pdf
