@@ -11,6 +11,7 @@ from courlan import check_url
 from ObjectListView import ColumnDefn, FastObjectListView
 
 from editor_window import EditorDialog
+from manage_memobooks_dialog import ManageMemoBooksDialog
 from memobook import MemoBook
 from utils import Settings
 
@@ -412,11 +413,9 @@ class MemoBookWindow(wx.Frame):
 
     def _on_manage_memobooks(self, event):
         """Open the manage memobooks dialog."""
-        return
-        from manage_memobooks_dialog import ManageMemoBooksDialog
-
-        dlg = ManageMemoBooksDialog(parent=self, memobooks_dir=self.memobooks_dir)
+        dlg = ManageMemoBooksDialog(parent=self)
         dlg.ShowModal()
+        self._build_memobooks_menu()
 
     ######################################## list events
 
