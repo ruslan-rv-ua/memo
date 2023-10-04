@@ -1,15 +1,7 @@
 {
-    "last_opened_memobook": "Old Home",
+    "memobooks_dir": "memobooks",
+    "last_opened_memobook": "My Memos",
     "memobooks": [
-        {
-            "name": "Home",
-            "path": null,
-            "is_protected": true
-        },
-        {
-            "name": "Old Home",
-            "path": "e:\\1\\Old Home",
-            "is_protected": false
-        }
+        "My Memos"
     ]
 }

@@ -12,29 +12,16 @@ from ObjectListView import ColumnDefn, FastObjectListView
 
 from editor_window import EditorDialog
 from manage_memobooks_dialog import ManageMemoBooksDialog
-from memobook import MemoBook
+from memo_item import Memo
+from memobook import DEFAULT_MEMOBOOK_SETTINGS, MemoBook
 from utils import Settings
 
 MEMOBOOKS_DIR_NAME = "memobooks"
+DEFAULT_MEMOBOOK_NAME = _("My Memos")  # TRANSLATORS: This is the name of the default memobook.
+DEFAULT_APP_SETTINGS = {"memobooks_dir": MEMOBOOKS_DIR_NAME, "last_opened_memobook": None, "memobooks": []}
+
 MIN_CHARS_TO_SEARCH = 5
 READABILITY_JS = (Path(__file__).parent / "Readability.js").read_text(encoding="utf-8")
-
-DEFAULT_APP_SETTINGS = {
-    "last_opened_memobook": None,
-    "memobooks": [
-        {
-            # translators: This is the name of the default memobook.
-            "name": _("Home"),
-            "path": None,  # if None, the memobook is stored in the memobooks directory
-            "is_protected": True,
-        },
-        {
-            "name": "Old Home",
-            "path": r"e:\1\Old Home",
-            "is_protected": False,
-        },
-    ],
-}
 
 
 class WebviewAction(Enum):
@@ -58,39 +45,78 @@ class MemoBookWindow(wx.Frame):
         super().__init__(None, wx.ID_ANY, title, style=style)
 
         self.work_dir = work_dir
+        self._settings_path = self.work_dir / ".settings"
+        if not self._settings_path.exists():
+            Settings.create(self._settings_path, DEFAULT_APP_SETTINGS)
+        self.settings = Settings(self._settings_path)
 
-        self.memobooks_dir = self.work_dir / MEMOBOOKS_DIR_NAME
-        if not self.memobooks_dir.exists():  # close the application
-            wx.MessageBox(
-                _("The memobooks directory does not exist. Please create it and restart the application."),
-                _("Error"),
-                wx.OK | wx.ICON_ERROR,
-            )
-            self.Close()
-
-        self.settings_file = self.work_dir / ".settings"
-        self.settings = Settings(self.settings_file, default=DEFAULT_APP_SETTINGS)
-
+        memobooks_path = Path(self.settings["memobooks_dir"])
+        self.memobooks_path = self.work_dir / memobooks_path if not memobooks_path.is_absolute() else memobooks_path
+        if not self.memobooks_path.exists():
+            self.memobooks_path.mkdir()
         self.web_view_action = WebviewAction.NONE
 
         self.init_ui()
+        self._load_memobooks()
 
-        # create home memobook if it does not exist
-        home_memobook_path = self.memobooks_dir / self.settings["memobooks"][0]["name"]
-        if not home_memobook_path.exists():
-            home_memobook = MemoBook.create(home_memobook_path)
-            self.settings["last_opened_memobook"] = home_memobook.name
+    def _get_memobook_path(self, str_path: str) -> Path:
+        """Get the path to a file in the memobook.
+
+        Args:
+            str_path: The path to the file.
+
+
+        Returns:
+            The path to the file in the memobook.
+
+
+        Raises:
+            FileNotFoundError: If the file does not exist.
+
+        """
+        p = Path(str_path)
+        return p if p.is_absolute() else self.memobooks_path / p
+
+    def _remove_memobook(self, memobook_str_path: Path):
+        """Remove a memobook from the list of memobooks.
+
+        Args:
+            memobook_str_path: The path to the memobook to remove.
+        """
+        self.settings["memobooks"].remove(memobook_str_path)
+        if self.settings["last_opened_memobook"] == memobook_str_path:
+            self.settings["last_opened_memobook"] = None
+        self.settings.save()
+
+    def _load_memobooks(self):
+        """Load the memobooks.
+
+        Remove memobooks that do not exist.
+        Create a default memobook if there are no any.
+        """
+        for memobook_str_path in self.settings["memobooks"]:
+            memobook_path = self._get_memobook_path(memobook_str_path)
+            if not memobook_path.exists():
+                self._remove_memobook(memobook_str_path)
+                continue
+            try:
+                MemoBook(memobook_path)
+            except FileNotFoundError:
+                self._remove_memobook(memobook_str_path)
+                continue
+        if not self.settings["memobooks"]:
+            # create default memobook if there are no any.
+            memobook_path = self.memobooks_path / DEFAULT_MEMOBOOK_NAME
+            MemoBook.create(memobook_path, DEFAULT_MEMOBOOK_SETTINGS, exist_ok=True)
+            self.settings["memobooks"].append(DEFAULT_MEMOBOOK_NAME)
+            self.settings["last_opened_memobook"] = DEFAULT_MEMOBOOK_NAME
             self.settings.save()
-
+        self._build_memobooks_menu()
         # open last opened memobook
-        memobook_name = self.settings["last_opened_memobook"]
-        for memobook in self.settings["memobooks"]:
-            if memobook["name"] == memobook_name:
-                memobook_path = Path(memobook["path"]) if memobook["path"] else self.memobooks_dir / memobook["name"]
-                self._open_memobook(memobook_path)
-                break
-        else:
-            self._open_memobook(home_memobook_path)
+        last_opened_memobook = self.settings["last_opened_memobook"]
+        if not last_opened_memobook:
+            last_opened_memobook = self.settings["memobooks"][0]
+        self._open_memobook(self._get_memobook_path(last_opened_memobook))
 
     def _build_memobooks_menu(self):
         """Build the memobooks menu."""
@@ -98,17 +124,17 @@ class MemoBookWindow(wx.Frame):
         for item in self.menu_memobooks.GetMenuItems():
             self.menu_memobooks.Delete(item)
 
-        self.menu_memobooks_manage_memobooks = self.menu_memobooks.Append(wx.ID_ANY, _("Manage memobooks\tCtrl+M"))
+        self.menu_memobooks_manage_memobooks = self.menu_memobooks.Append(wx.ID_ANY, _("Manage memobooks\tF9"))
         self.Bind(wx.EVT_MENU, self._on_manage_memobooks, self.menu_memobooks_manage_memobooks)
         self.menu_memobooks.AppendSeparator()
-        for i, memobook in enumerate(self.settings["memobooks"], start=1):
-            # translators: This is the name of a memobook.
-            menu_item = self.menu_memobooks.AppendRadioItem(wx.ID_ANY, memobook["name"] + f"\tCtrl+{i}")
-            menu_item.Check(memobook["name"] == self.settings["last_opened_memobook"])
-            memobook_path = Path(memobook["path"]) if memobook["path"] else self.memobooks_dir / memobook["name"]
+
+        for i, memobook_str_path in enumerate(self.settings["memobooks"][:10]):
+            path = self._get_memobook_path(memobook_str_path)
+            menu_item = self.menu_memobooks.AppendRadioItem(wx.ID_ANY, path.name + f"\tCtrl+{i}")
+            menu_item.Check(memobook_str_path == self.settings["last_opened_memobook"])
             self.Bind(
                 wx.EVT_MENU,
-                lambda event, memobook_path=memobook_path: self._open_memobook(memobook_path),
+                lambda event, path=path: self._open_memobook(path),
                 menu_item,
             )
 
@@ -119,20 +145,10 @@ class MemoBookWindow(wx.Frame):
         # memobooks menu
         self.menu_memobooks = wx.Menu()
         self.menubar.Append(self.menu_memobooks, _("MemoBooks"))
+        # rest of the menu is built in _build_memobooks_menu()
 
         # View menu
         self.menu_view = wx.Menu()
-
-        self.menu_view_quick_search = self.menu_view.Append(wx.ID_ANY, _("Go to search\tCtrl+F"))
-        self.Bind(wx.EVT_MENU, self._on_focus_quick_search, self.menu_view_quick_search)
-
-        self.menu_view_goto_list = self.menu_view.Append(wx.ID_ANY, _("Go to memos list\tCtrl+L"))
-        self.Bind(wx.EVT_MENU, self._on_focus_memos_list, self.menu_view_goto_list)
-
-        self.menu_view_goto_web_view = self.menu_view.Append(wx.ID_ANY, _("Go to preview\tCtrl+W"))
-        self.Bind(wx.EVT_MENU, self._on_focus_web_view, self.menu_view_goto_web_view)
-
-        self.menu_view.AppendSeparator()
 
         self.menu_view_reset_search_results = self.menu_view.Append(wx.ID_ANY, _("Reset search results\tCtrl+R"))
         self.Bind(wx.EVT_MENU, self._on_reset_search_results, self.menu_view_reset_search_results)
@@ -142,7 +158,7 @@ class MemoBookWindow(wx.Frame):
         # Memo menu
         self.menu_memo = wx.Menu()
 
-        self.menu_memo_add_memo = self.menu_memo.Append(wx.ID_ANY, _("Add note\tCtrl+N"))
+        self.menu_memo_add_memo = self.menu_memo.Append(wx.ID_ANY, _("Add memo\tCtrl+M"))
         self.Bind(wx.EVT_MENU, self._on_add_memo, self.menu_memo_add_memo)
 
         self.menu_memo_add_bookmark = self.menu_memo.Append(wx.ID_ANY, _("Add bookmark\tCtrl+B"))
@@ -166,7 +182,7 @@ class MemoBookWindow(wx.Frame):
 
         ############################################################ left part
         # search box with label "Quick search"
-        self.search_label = wx.StaticText(self.panel, wx.ID_ANY, _("Quick search"))
+        self.search_label = wx.StaticText(self.panel, wx.ID_ANY, _("Search"))
         self.search_text = wx.TextCtrl(self.panel, wx.ID_ANY, "")
         # bind search text events
         self.search_text.Bind(wx.EVT_TEXT, lambda event: self._update_memos())
@@ -216,19 +232,7 @@ class MemoBookWindow(wx.Frame):
             new_name = new_name.strip()
             if not new_name or new_name == memo["name"]:
                 return
-            memo_content = self.memobook.get_memo_markdown(memo["name"])
-            name = self.memobook.add_memo(markdown=memo_content, name=new_name, add_date_hashtag=False)
-            if name is None:
-                wx.MessageBox(
-                    _(
-                        "Invalid memo name. Memo names must be unique and cannot contain the following characters: "
-                        '/ \\ : * ? ! " < > |'
-                    ),
-                    _("Error"),
-                    wx.OK | wx.ICON_ERROR,
-                )
-                return
-            self.memobook.delete_memo(memo["name"])
+            name = self.memobook.rename_memo(old_name=memo["name"], new_name=new_name)
             self._update_memos(name)
 
         self.list_memos.SetFocus()
@@ -236,6 +240,7 @@ class MemoBookWindow(wx.Frame):
         self._update_memos(focus_on=0)
         self.settings["last_opened_memobook"] = self.memobook.name
         self.settings.save()
+        self.search_label.SetLabel(_("Search in") + f" {self.memobook.name}")
 
     def _update_memos(self, focus_on: str | int | None = None):
         """Update the list of memos.
@@ -306,25 +311,20 @@ class MemoBookWindow(wx.Frame):
 
     ######################################## menu events
 
-    def _on_focus_quick_search(self, event):
-        self.search_text.SetFocus()
-
-    def _on_focus_memos_list(self, event):
-        self.list_memos.SetFocus()
-
-    def _on_focus_web_view(self, event):
-        self.web_view.SetFocus()
-
     def _on_reset_search_results(self, event):
         self.search_text.SetValue("")
         self._update_memos(focus_on=0)
 
     def _on_add_memo(self, event):
-        edit_dlg = EditorDialog(parent=self, title=_("Add memo"), value="")
+        memo = self.memobook.create_empty_memo_object()
+        edit_dlg = EditorDialog(parent=self, title=_("Add memo"), value=memo.markdown)
         if edit_dlg.ShowModal() != wx.ID_OK:
             return
         markdown = edit_dlg.value
-        name = self.memobook.add_memo(markdown=markdown, add_date_hashtag=True)
+        if markdown == memo.markdown:
+            return
+        memo = Memo(markdown)
+        name = self.memobook.add_memo(memo)
         self._on_reset_search_results(None)
         self._update_memos(name)
 
@@ -361,20 +361,16 @@ class MemoBookWindow(wx.Frame):
     def _add_bookmark(self):
         """Add a bookmark."""
         success, article_json = self.web_view.RunScript(READABILITY_JS)
-        article = json.loads(article_json)
         if not success or not article_json:
             wx.MessageBox(_("Could not get the page"), _("Error"), wx.OK | wx.ICON_ERROR)
             return
-
+        article = json.loads(article_json)
         readable_html = article["content"]
         name = f"{article['title']} ({self.domain_name})" if article["title"] else self.domain_name
-        name = self.memobook.add_memo_from_html(
-            html=readable_html, name=name, add_date_hashtag=True, extra_hashtags=[_("#bookmark")]
-        )
-        parsed_markdown = self.memobook.get_memo_markdown(name)
-        memo_markdown = f"<{self.url}>\n\n{parsed_markdown}"
-        self.memobook.update_memo(name=name, markdown=memo_markdown)
-
+        name = self.memobook.add_memo_from_html(html=readable_html, name=name, url=self.url)
+        if not name:
+            wx.MessageBox(_("Could not add the bookmark"), _("Error"), wx.OK | wx.ICON_ERROR)
+            return
         self._on_reset_search_results(None)
         self._update_memos(name)
 
@@ -420,7 +416,7 @@ class MemoBookWindow(wx.Frame):
     ######################################## list events
 
     def _on_focus_memo(self, event):
-        """Select a memo."""
+        """Show the memo in the web view."""
         item = self._get_focused_memo()
         html = self.memobook.get_memo_html(item["name"])
         self.web_view.SetPage(html, "")
