@@ -11,7 +11,6 @@ from courlan import check_url
 from ObjectListView import ColumnDefn, FastObjectListView
 
 from editor_window import EditorDialog
-from manage_memobooks_dialog import ManageMemoBooksDialog
 from memo_item import Memo
 from memobook import DEFAULT_MEMOBOOK_SETTINGS, MemoBook
 from utils import Settings
@@ -77,31 +76,26 @@ class MemoBookWindow(wx.Frame):
         p = Path(str_path)
         return p if p.is_absolute() else self.memobooks_path / p
 
-    def _remove_memobook(self, memobook_str_path: Path):
-        """Remove a memobook from the list of memobooks.
-
-        Args:
-            memobook_str_path: The path to the memobook to remove.
-        """
-        self.settings["memobooks"].remove(memobook_str_path)
-        self.settings.save()
-
     def _load_memobooks(self):
         """Load the memobooks.
 
         Remove memobooks that do not exist.
         Create a default memobook if there are no any.
         """
+        memobooks_to_remove = []
         for memobook_str_path in self.settings["memobooks"]:
             memobook_path = self._get_memobook_path(memobook_str_path)
             if not memobook_path.exists():
-                self._remove_memobook(memobook_str_path)
+                memobooks_to_remove.append(memobook_str_path)
                 continue
             try:
                 MemoBook(memobook_path)
             except FileNotFoundError:
-                self._remove_memobook(memobook_str_path)
+                memobooks_to_remove.append(memobook_str_path)
                 continue
+        for memobook_str_path in memobooks_to_remove:
+            self.settings["memobooks"].remove(memobook_str_path)
+        self.settings.save()
         if not self.settings["memobooks"]:
             # create default memobook if there are no any.
             memobook_path = self.memobooks_path / DEFAULT_MEMOBOOK_NAME
@@ -156,8 +150,8 @@ class MemoBookWindow(wx.Frame):
         self.menu_memobooks_new = self.menu_memobooks.Append(wx.ID_ANY, _("New\tF7"))
         self.Bind(wx.EVT_MENU, self._on_new_memobook, self.menu_memobooks_new)
 
-        self.menu_memobooks_add = self.menu_memobooks.Append(wx.ID_ANY, _("Add\tF5"))
-        self.Bind(wx.EVT_MENU, self._on_add_memo, self.menu_memobooks_add)
+        self.menu_memobooks_add = self.menu_memobooks.Append(wx.ID_ANY, _("Add\tCtrl+F7"))
+        self.Bind(wx.EVT_MENU, self._on_add_memobook, self.menu_memobooks_add)
 
         self.menu_memobooks_delete = self.menu_memobooks.Append(wx.ID_ANY, _("Delete\tF8"))
         self.Bind(wx.EVT_MENU, self._on_delete_memobook, self.menu_memobooks_delete)
@@ -328,7 +322,7 @@ class MemoBookWindow(wx.Frame):
     ######################################## menu events
 
     def _on_new_memobook(self, event):
-        # get memobook name
+        """Create a new internal memobook."""
         memobook_name = wx.GetTextFromUser(_("Enter the name of the memobook"), _("New memobook"), "")
         if not memobook_name:
             return
@@ -356,6 +350,10 @@ class MemoBookWindow(wx.Frame):
     def _on_reset_search_results(self, event):
         self.search_text.SetValue("")
         self._update_memos(focus_on=0)
+
+    ############################################################
+    # memo menu
+    ############################################################
 
     def _on_add_memo(self, event):
         memo = self.memobook.create_empty_memo_object()
@@ -448,12 +446,6 @@ class MemoBookWindow(wx.Frame):
         for item in selected_items:
             self.memobook.delete_memo(item["name"])
         self._update_memos(focus_on=focused_item_index)
-
-    def _on_manage_memobooks(self, event):
-        """Open the manage memobooks dialog."""
-        dlg = ManageMemoBooksDialog(parent=self)
-        dlg.ShowModal()
-        self._build_open_memobook_menu()
 
     ######################################## list events
 
