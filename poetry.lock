@@ -96,17 +96,6 @@ files = [
 ]
 
 [[package]]
-name = "chardet"
-version = "5.2.0"
-description = "Universal encoding detector for Python 3"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "chardet-5.2.0-py3-none-any.whl", hash = "sha256:e1cf59446890a00105fe7b7912492ea04b6e6f06d4b742b2c788469e34c82970"},
-    {file = "chardet-5.2.0.tar.gz", hash = "sha256:1b3b6ff479a8c414bc3fa2c0852995695c4a026dcd6d0633b2dd092ca39c1cf7"},
-]
-
-[[package]]
 name = "charset-normalizer"
 version = "3.2.0"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
@@ -639,10 +628,6 @@ files = [
     {file = "markdown2-2.4.10-py2.py3-none-any.whl", hash = "sha256:e6105800483783831f5dc54f827aa5b44eb137ecef5a70293d8ecfbb4109ecc6"},
     {file = "markdown2-2.4.10.tar.gz", hash = "sha256:cdba126d90dc3aef6f4070ac342f974d63f415678959329cc7909f96cc235d72"},
 ]
-
-[package.dependencies]
-pygments = {version = ">=2.7.3", optional = true, markers = "extra == \"all\""}
-wavedrom = {version = "*", optional = true, markers = "python_version >= \"3.7\" and extra == \"all\""}
 
 [package.extras]
 all = ["pygments (>=2.7.3)", "wavedrom"]
@@ -1235,25 +1220,6 @@ files = [
 pyyaml = "*"
 
 [[package]]
-name = "readability-lxml"
-version = "0.8.1"
-description = "fast html to text parser (article readability tool) with python 3 support"
-optional = false
-python-versions = "*"
-files = [
-    {file = "readability-lxml-0.8.1.tar.gz", hash = "sha256:e51fea56b5909aaf886d307d48e79e096293255afa567b7d08bca94d25b1a4e1"},
-    {file = "readability_lxml-0.8.1-py3-none-any.whl", hash = "sha256:e0d366a21b1bd6cca17de71a4e6ea16fcfaa8b0a5b4004e39e2c7eff884e6305"},
-]
-
-[package.dependencies]
-chardet = "*"
-cssselect = "*"
-lxml = "*"
-
-[package.extras]
-test = ["timeout-decorator"]
-
-[[package]]
 name = "readtime"
 version = "3.0.0"
 description = "Calculates the time some text takes the average human to read, based on Medium's read time forumula"
@@ -1451,17 +1417,6 @@ files = [
 ]
 
 [[package]]
-name = "svgwrite"
-version = "1.4.3"
-description = "A Python library to create SVG drawings."
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "svgwrite-1.4.3-py3-none-any.whl", hash = "sha256:bb6b2b5450f1edbfa597d924f9ac2dd099e625562e492021d7dd614f65f8a22d"},
-    {file = "svgwrite-1.4.3.zip", hash = "sha256:a8fbdfd4443302a6619a7f76bc937fc683daf2628d9b737c891ec08b8ce524c3"},
-]
-
-[[package]]
 name = "tld"
 version = "0.13"
 description = "Extract the top-level domain (TLD) from the URL given."
@@ -1549,24 +1504,6 @@ files = [
 watchmedo = ["PyYAML (>=3.10)"]
 
 [[package]]
-name = "wavedrom"
-version = "2.0.3.post3"
-description = "WaveDrom compatible python command line"
-optional = false
-python-versions = "*"
-files = [
-    {file = "wavedrom-2.0.3.post3.tar.gz", hash = "sha256:327b4d5dca593c81257c202fea516f7a908747fb11527c359f034f5b7af7f47b"},
-]
-
-[package.dependencies]
-pyyaml = "*"
-six = "*"
-svgwrite = "*"
-
-[package.extras]
-test = ["cairosvg", "pillow", "xmldiff"]
-
-[[package]]
 name = "wxpython"
 version = "4.2.1"
 description = "Cross platform GUI toolkit for Python, \"Phoenix\" version"
@@ -1599,4 +1536,4 @@ six = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11, <4.0"
-content-hash = "6bfd4ffe3920881550ccf2d66ccc403ec21f8b6a4499a05eb0cb941510d18691"
+content-hash = "9f04b7c560627599efcc5b9f79e24545423f046c078cfc4c7444c58bddd41a75"

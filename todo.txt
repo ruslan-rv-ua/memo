@@ -1,3 +1,5 @@
+- max lwngth of memo, espesialy for bookmarks
+- get all links javascript
 - try when parsed:
     textContent: text content of the article, with all the HTML tags removed;
     length: length of an article, in characters;
