@@ -35,7 +35,6 @@ class MemoBook:
         """Create or open a memo book at the given path."""
         self._path = path
         self._settings_path = path / ".settings"
-        self._cache_path = path / ".cache"
 
         self.settings = Settings(self._settings_path, default=DEFAULT_MEMOBOOK_SETTINGS)
         self.html2text_parser = HTML2MarkdownParser()
@@ -49,10 +48,6 @@ class MemoBook:
     def _get_memo_path(self, name: str) -> Path:
         """Get the path to a memo."""
         return self._path / f"{name}{MEMO_EXTENSION}"
-
-    def _get_cached_memo_path(self, name: str) -> Path:
-        """Get the path to a cached memo."""
-        return self._cache_path / f"{name}.html"
 
     ########################################
     # Memos
@@ -127,9 +122,6 @@ class MemoBook:
             return None
         memo = MemoManipulator(markdown)
         memo.save(memo_path)
-        cached_path = self._get_cached_memo_path(name)
-        if cached_path.exists():
-            cached_path.unlink()
         return name
 
     def get_memo_markdown(self, name: str) -> str:
@@ -203,9 +195,6 @@ class MemoBook:
         memo_path = self._get_memo_path(name)
         if not memo_path.exists():
             return None
-        cached_path = self._get_cached_memo_path(name)
-        if cached_path.exists():
-            cached_path.unlink()
         memo_path.unlink()
         return name
 
@@ -218,7 +207,6 @@ class MemoBook:
         Returns:
             The renedered HTML of the memo.
         """
-        # if cached_path.exists():
         markdown = self._get_memo_path(name).read_text(encoding="utf-8")
         return memo_template.render(markdown=markdown)
 
