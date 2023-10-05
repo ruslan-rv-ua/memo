@@ -148,10 +148,10 @@ class MemoBookWindow(wx.Frame):
         # rest of the menu is built in `_build_open_memobook_menu`
 
         self.menu_memobooks_new = self.menu_memobooks.Append(wx.ID_ANY, _("New\tF7"))
-        self.Bind(wx.EVT_MENU, self._on_new_memobook, self.menu_memobooks_new)
+        self.Bind(wx.EVT_MENU, self._on_new_internal_memobook, self.menu_memobooks_new)
 
         self.menu_memobooks_add = self.menu_memobooks.Append(wx.ID_ANY, _("Add\tCtrl+F7"))
-        self.Bind(wx.EVT_MENU, self._on_add_memobook, self.menu_memobooks_add)
+        self.Bind(wx.EVT_MENU, self._on_add_external_memobook, self.menu_memobooks_add)
 
         self.menu_memobooks_delete = self.menu_memobooks.Append(wx.ID_ANY, _("Delete\tF8"))
         self.Bind(wx.EVT_MENU, self._on_delete_memobook, self.menu_memobooks_delete)
@@ -321,7 +321,7 @@ class MemoBookWindow(wx.Frame):
     # memobooks menu
     ######################################## menu events
 
-    def _on_new_memobook(self, event):
+    def _on_new_internal_memobook(self, event):
         """Create a new internal memobook."""
         memobook_name = wx.GetTextFromUser(_("Enter the name of the memobook"), _("New memobook"), "")
         if not memobook_name:
@@ -337,8 +337,19 @@ class MemoBookWindow(wx.Frame):
         self.settings.save()
         self._build_open_memobook_menu()
 
-    def _on_add_memobook(self, event):
-        pass
+    def _on_add_external_memobook(self, event):
+        # ask folder path
+        dlg = wx.DirDialog(self, _("Choose a directory"), style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        memobook_path = Path(dlg.GetPath())
+        memobook = MemoBook.create(memobook_path, DEFAULT_MEMOBOOK_SETTINGS, exist_ok=True)
+        if not memobook:
+            wx.MessageBox(_("Could not create the memobook"), _("Error"), wx.OK | wx.ICON_ERROR)
+            return
+        self.settings["memobooks"].append(str(memobook.path))
+        self.settings.save()
+        self._build_open_memobook_menu()
 
     def _on_delete_memobook(self, event):
         pass
