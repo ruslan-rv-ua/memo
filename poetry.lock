@@ -96,17 +96,6 @@ files = [
 ]
 
 [[package]]
-name = "chardet"
-version = "5.2.0"
-description = "Universal encoding detector for Python 3"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "chardet-5.2.0-py3-none-any.whl", hash = "sha256:e1cf59446890a00105fe7b7912492ea04b6e6f06d4b742b2c788469e34c82970"},
-    {file = "chardet-5.2.0.tar.gz", hash = "sha256:1b3b6ff479a8c414bc3fa2c0852995695c4a026dcd6d0633b2dd092ca39c1cf7"},
-]
-
-[[package]]
 name = "charset-normalizer"
 version = "3.2.0"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
@@ -564,6 +553,72 @@ docs = ["mdx-gh-links (>=0.2)", "mkdocs (>=1.0)", "mkdocs-nature (>=0.4)"]
 testing = ["coverage", "pyyaml"]
 
 [[package]]
+name = "markdown-it-pyrs"
+version = "0.3.0"
+description = "A Python interface for markdown-it.rs, using Rust for blazingly fast Markdown parsing ⚡️"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "markdown_it_pyrs-0.3.0-cp310-cp310-macosx_10_7_x86_64.whl", hash = "sha256:b92f530e9684e1a432363833d75a8431c24e5bfb79f9ab4b1fb51df737b64b99"},
+    {file = "markdown_it_pyrs-0.3.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:789a6bb599fd9bcce1d9ee38e408ed7f4ac0a20beaf4df8f4ef9042e4e5e94cf"},
+    {file = "markdown_it_pyrs-0.3.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a2b014c38d23f27825b480273db25abd1c38e7885a4956858b4852c49d7373d7"},
+    {file = "markdown_it_pyrs-0.3.0-cp310-cp310-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:8c0d1154db7017ef89bfc589d6e090305c305431f38139733c15c0927802092c"},
+    {file = "markdown_it_pyrs-0.3.0-cp310-cp310-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:ee4fa7ef0781b6dee826a52d92780f32e69ce9991cde31e6e1d63f04ac6f3f7e"},
+    {file = "markdown_it_pyrs-0.3.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3553173571a4717679b68677d2b06bcb4bc7df268f52b889e1c45af5db804d10"},
+    {file = "markdown_it_pyrs-0.3.0-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:feafe9e8c4f78caec1c870650720ced2a24a320a6edfed981f16916f0951c367"},
+    {file = "markdown_it_pyrs-0.3.0-cp310-none-win32.whl", hash = "sha256:0ad20f135ba19713d2a97f9ec93ec3a20ec0784028f77153372be2501bd996ef"},
+    {file = "markdown_it_pyrs-0.3.0-cp310-none-win_amd64.whl", hash = "sha256:143b6b95c26e47a5e1ff3c20a2fdc5644050482815bc15e9b2ef7afcdd524a30"},
+    {file = "markdown_it_pyrs-0.3.0-cp311-cp311-macosx_10_7_x86_64.whl", hash = "sha256:6b848d5473c8d0b19e4296cb73e08ad5a811946d0cc100f7fdcaa1d00a590a39"},
+    {file = "markdown_it_pyrs-0.3.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:40ffa8298744b6bd4cb27f16b53ab5a54ae2ae1d8d0d49183b9935eb6bff2a53"},
+    {file = "markdown_it_pyrs-0.3.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2914feca8bb29c908d93611062bee387cf219d60ad1b079d1ae366eabb6046ae"},
+    {file = "markdown_it_pyrs-0.3.0-cp311-cp311-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:c68da667270f508b29d04fb73d3849f59a39f38d05c4a4b546b4e3a40123bf54"},
+    {file = "markdown_it_pyrs-0.3.0-cp311-cp311-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:a7874379625ff6775215a4eaacc3c3e3e2b100fd9c818e039d05b7ef521b8c6a"},
+    {file = "markdown_it_pyrs-0.3.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:45f5209be8fcd0c1470d71eccc3fd21f239b7228076deb538f87076245052702"},
+    {file = "markdown_it_pyrs-0.3.0-cp311-cp311-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:44b1de9911a8c0a76ad0bf64bb6815e53670391a079677850f5b6db6b23dbe09"},
+    {file = "markdown_it_pyrs-0.3.0-cp311-none-win32.whl", hash = "sha256:2373e0d23f73db4a182ae11e67c42542ea0ca0e7b2e6697daf84f7ac8ba32f33"},
+    {file = "markdown_it_pyrs-0.3.0-cp311-none-win_amd64.whl", hash = "sha256:5f112e17e669a6c14c93c81c2522288d4bd65d276b2cc038ceca9401d3871786"},
+    {file = "markdown_it_pyrs-0.3.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0bd75925e1f2e205c30f8269bb57f77fcec4a8aa78ea1f478da9e50f1ea2f3d5"},
+    {file = "markdown_it_pyrs-0.3.0-cp312-cp312-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:806581916362c39913f1bc34b6b0cfa6ff4b753045ef53b389e161132f9bec5a"},
+    {file = "markdown_it_pyrs-0.3.0-cp312-cp312-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:108a29af50cf444ba1480d53b2f5907c925c90a6be350feed0d39551abc96ba2"},
+    {file = "markdown_it_pyrs-0.3.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9def6de16027203f4b06939cd08d0ae0ac197a46b71f414622ba9950fe76c383"},
+    {file = "markdown_it_pyrs-0.3.0-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:611e07531cd153e8f07fef693c549c42a4222c840b3856e5b36bc1bb1596c6c4"},
+    {file = "markdown_it_pyrs-0.3.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d642995fcbfa5d593cf3f300fe5c354457548e081c5af2c96195d1a022a86638"},
+    {file = "markdown_it_pyrs-0.3.0-cp38-cp38-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:7568b353b078e84ca1709059e457823f11a527004f69c20d98cf92e79de7a95b"},
+    {file = "markdown_it_pyrs-0.3.0-cp38-cp38-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:0787989160a4537c2336ea9aed2dbbd4aa97828d5b5d2978f253109ca7d9b160"},
+    {file = "markdown_it_pyrs-0.3.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c9a175b33f0b1180b858329cf10a1cb24b8db1dd74f657f49a2abe52e03540fb"},
+    {file = "markdown_it_pyrs-0.3.0-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:81bee03530b3bd3acfb8a887beed2affb6643aab9a2c53c87da6946d10d3fb73"},
+    {file = "markdown_it_pyrs-0.3.0-cp38-none-win32.whl", hash = "sha256:b962347948c1ca60bfd88e4e4fae31dbe13fe54a0b151f4ed73ec43b6c445cf0"},
+    {file = "markdown_it_pyrs-0.3.0-cp38-none-win_amd64.whl", hash = "sha256:13b9c65ceadf71c320095fe1b90a8d6f1c5279409b493ffe100ce776e157313b"},
+    {file = "markdown_it_pyrs-0.3.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:09b92b86592a214ca0af72a329f2332db7fb3f89930690138d2f73bdfb1408ce"},
+    {file = "markdown_it_pyrs-0.3.0-cp39-cp39-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:f35ac607fbe033d28ed328477300e90f35ab908ef8baefb000a3dd104f1db834"},
+    {file = "markdown_it_pyrs-0.3.0-cp39-cp39-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:64be6b972bed0ca9c2d7937f0cd41dda58886a73e08bbc8fd1c7430a9af5769b"},
+    {file = "markdown_it_pyrs-0.3.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2b1228ade486e24ec3a2c047836755b105e1c67f20f9d2534c29e6986ddbf828"},
+    {file = "markdown_it_pyrs-0.3.0-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:bdfbcfae3af4e09ef115b605cecf96b57eecdf71345c52d42f0e99a2556d9cda"},
+    {file = "markdown_it_pyrs-0.3.0-cp39-none-win32.whl", hash = "sha256:1dd1e6a91ee540d34a80084e9c060ee8ddaa8fe7083bc25d8439f698033f8cf6"},
+    {file = "markdown_it_pyrs-0.3.0-cp39-none-win_amd64.whl", hash = "sha256:511a614784b521b61fd8d3ccbca33e90033cb502714b2c5222d2d6d159ae4e85"},
+    {file = "markdown_it_pyrs-0.3.0-pp310-pypy310_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a00a8394939a610c54f1684bfa0bfe07274c95173bb79ab28c1a205f1356c9a8"},
+    {file = "markdown_it_pyrs-0.3.0-pp310-pypy310_pp73-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:793a5eb213bc4b586938a67df1d60dc1c4d6122c48207542ecf9c09922532736"},
+    {file = "markdown_it_pyrs-0.3.0-pp310-pypy310_pp73-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:95c8233ca50b7f62a4f9c4b8da9e375cbee2cd10159ff66b6639dc7bc0ab7f6f"},
+    {file = "markdown_it_pyrs-0.3.0-pp310-pypy310_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5776202653d25d18ba44029eb0b84bfbc9fa80c7c0c2bc906a511e70959c2b08"},
+    {file = "markdown_it_pyrs-0.3.0-pp310-pypy310_pp73-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:2ad41536cb1de23b3099712dbe16c54356448e6998ce9ece437e8c0b089ada39"},
+    {file = "markdown_it_pyrs-0.3.0-pp38-pypy38_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:192fe5c6933ccaf9b12ee80a7e2c2a570e8bc2eeaccefdd23d9f831de0ee1e13"},
+    {file = "markdown_it_pyrs-0.3.0-pp38-pypy38_pp73-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:6f282474abf2ae24f61657cbd4f8a070afc1d74d9b870f9919264739a48633ce"},
+    {file = "markdown_it_pyrs-0.3.0-pp38-pypy38_pp73-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:271d49f9b59c0005a660cf0a9874b8c9ec99a1b82c5c93ed843c1122bd83a620"},
+    {file = "markdown_it_pyrs-0.3.0-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cbf5f87aae9e0a2f2aa0308cc5eb790dbb42a9ea10f1c31082265af3980ab727"},
+    {file = "markdown_it_pyrs-0.3.0-pp38-pypy38_pp73-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:0ad7ed0928b1088676eef2bfe9d3269e1d94b1bde86b7a41c68c9797720e0789"},
+    {file = "markdown_it_pyrs-0.3.0-pp39-pypy39_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:541a8514dfb35a82da67a0eb029d5218a5976e641e5fe954e1a5ffaaf0748e98"},
+    {file = "markdown_it_pyrs-0.3.0-pp39-pypy39_pp73-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:7b088d5f331e099fc6bb71769c1a24298dcfd78fcd21625f1b731d377416a8af"},
+    {file = "markdown_it_pyrs-0.3.0-pp39-pypy39_pp73-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:4d6316c1e7bbff2b5eff6c9a8462148cffb1a7d8ad6383dc1d409dd25dc91242"},
+    {file = "markdown_it_pyrs-0.3.0-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6d343f0e0c8a1acc865c051b92368e8609addc3310f7dc62112d1c5045f43159"},
+    {file = "markdown_it_pyrs-0.3.0-pp39-pypy39_pp73-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:9945dd6a198a293ca227e788d3a7cea88a7692294d7a11ce3bf8e1257fdb4d4b"},
+    {file = "markdown_it_pyrs-0.3.0.tar.gz", hash = "sha256:ed7993eea772405fd7c839d2dd496c4a03ca0c49956b8ddc97d937086cfefa19"},
+]
+
+[package.extras]
+benchmarking = ["markdown-it-py", "pytest", "pytest-benchmark"]
+testing = ["pytest", "pytest-param-files"]
+
+[[package]]
 name = "markdown2"
 version = "2.4.10"
 description = "A fast and complete Python implementation of Markdown"
@@ -573,10 +628,6 @@ files = [
     {file = "markdown2-2.4.10-py2.py3-none-any.whl", hash = "sha256:e6105800483783831f5dc54f827aa5b44eb137ecef5a70293d8ecfbb4109ecc6"},
     {file = "markdown2-2.4.10.tar.gz", hash = "sha256:cdba126d90dc3aef6f4070ac342f974d63f415678959329cc7909f96cc235d72"},
 ]
-
-[package.dependencies]
-pygments = {version = ">=2.7.3", optional = true, markers = "extra == \"all\""}
-wavedrom = {version = "*", optional = true, markers = "python_version >= \"3.7\" and extra == \"all\""}
 
 [package.extras]
 all = ["pygments (>=2.7.3)", "wavedrom"]
@@ -1169,25 +1220,6 @@ files = [
 pyyaml = "*"
 
 [[package]]
-name = "readability-lxml"
-version = "0.8.1"
-description = "fast html to text parser (article readability tool) with python 3 support"
-optional = false
-python-versions = "*"
-files = [
-    {file = "readability-lxml-0.8.1.tar.gz", hash = "sha256:e51fea56b5909aaf886d307d48e79e096293255afa567b7d08bca94d25b1a4e1"},
-    {file = "readability_lxml-0.8.1-py3-none-any.whl", hash = "sha256:e0d366a21b1bd6cca17de71a4e6ea16fcfaa8b0a5b4004e39e2c7eff884e6305"},
-]
-
-[package.dependencies]
-chardet = "*"
-cssselect = "*"
-lxml = "*"
-
-[package.extras]
-test = ["timeout-decorator"]
-
-[[package]]
 name = "readtime"
 version = "3.0.0"
 description = "Calculates the time some text takes the average human to read, based on Medium's read time forumula"
@@ -1385,17 +1417,6 @@ files = [
 ]
 
 [[package]]
-name = "svgwrite"
-version = "1.4.3"
-description = "A Python library to create SVG drawings."
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "svgwrite-1.4.3-py3-none-any.whl", hash = "sha256:bb6b2b5450f1edbfa597d924f9ac2dd099e625562e492021d7dd614f65f8a22d"},
-    {file = "svgwrite-1.4.3.zip", hash = "sha256:a8fbdfd4443302a6619a7f76bc937fc683daf2628d9b737c891ec08b8ce524c3"},
-]
-
-[[package]]
 name = "tld"
 version = "0.13"
 description = "Extract the top-level domain (TLD) from the URL given."
@@ -1483,24 +1504,6 @@ files = [
 watchmedo = ["PyYAML (>=3.10)"]
 
 [[package]]
-name = "wavedrom"
-version = "2.0.3.post3"
-description = "WaveDrom compatible python command line"
-optional = false
-python-versions = "*"
-files = [
-    {file = "wavedrom-2.0.3.post3.tar.gz", hash = "sha256:327b4d5dca593c81257c202fea516f7a908747fb11527c359f034f5b7af7f47b"},
-]
-
-[package.dependencies]
-pyyaml = "*"
-six = "*"
-svgwrite = "*"
-
-[package.extras]
-test = ["cairosvg", "pillow", "xmldiff"]
-
-[[package]]
 name = "wxpython"
 version = "4.2.1"
 description = "Cross platform GUI toolkit for Python, \"Phoenix\" version"
@@ -1533,4 +1536,4 @@ six = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11, <4.0"
-content-hash = "be0ef0ae8df4e31f6304395387c7cbe1091a14fe8d9300464f24b3acdf4ce67c"
+content-hash = "9f04b7c560627599efcc5b9f79e24545423f046c078cfc4c7444c58bddd41a75"

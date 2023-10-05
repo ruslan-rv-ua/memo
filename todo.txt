@@ -1,3 +1,7 @@
+- add #bookmark if url present only
+- max lwngth of memo, espesialy for bookmarks
+- get all links javascript
+- open link not with browser, but use Os capabilities
 - try when parsed:
     textContent: text content of the article, with all the HTML tags removed;
     length: length of an article, in characters;
