@@ -109,25 +109,21 @@ class MemoBookWindow(wx.Frame):
             self.settings["memobooks"].append(DEFAULT_MEMOBOOK_NAME)
             self.settings["last_opened_memobook"] = DEFAULT_MEMOBOOK_NAME
             self.settings.save()
-        self._build_memobooks_menu()
+        self._build_open_memobook_menu()
         # open last opened memobook
         if self.settings["last_opened_memobook"] not in self.settings["memobooks"]:
             self.settings["last_opened_memobook"] = self.settings["memobooks"][0]
         self._open_memobook(self._get_memobook_path(self.settings["last_opened_memobook"]))
 
-    def _build_memobooks_menu(self):
+    def _build_open_memobook_menu(self):
         """Build the memobooks menu."""
         # clear menu
-        for item in self.menu_memobooks.GetMenuItems():
+        for item in self.menu_memobooks_menu_open.GetMenuItems():
             self.menu_memobooks.Delete(item)
 
-        self.menu_memobooks_manage_memobooks = self.menu_memobooks.Append(wx.ID_ANY, _("Manage memobooks\tF9"))
-        self.Bind(wx.EVT_MENU, self._on_manage_memobooks, self.menu_memobooks_manage_memobooks)
-        self.menu_memobooks.AppendSeparator()
-
-        for i, memobook_str_path in enumerate(self.settings["memobooks"][:10]):
+        for i, memobook_str_path in enumerate(self.settings["memobooks"], start=1):
             path = self._get_memobook_path(memobook_str_path)
-            menu_item = self.menu_memobooks.AppendRadioItem(wx.ID_ANY, path.name + f"\tCtrl+{i}")
+            menu_item = self.menu_memobooks_menu_open.AppendRadioItem(wx.ID_ANY, path.name + f"\tCtrl+{i}")
             menu_item.Check(memobook_str_path == self.settings["last_opened_memobook"])
             self.Bind(
                 wx.EVT_MENU,
@@ -141,7 +137,11 @@ class MemoBookWindow(wx.Frame):
 
         # memobooks menu
         self.menu_memobooks = wx.Menu()
-        self.menubar.Append(self.menu_memobooks, _("MemoBooks"))
+        self.menubar.Append(self.menu_memobooks, _("MemoBook"))
+        # `open` sub-menu
+        self.menu_memobooks_menu_open = wx.Menu()
+        self.menu_memobooks_open = self.menu_memobooks.AppendSubMenu(self.menu_memobooks_menu_open, _("Open"))
+
         # rest of the menu is built in _build_memobooks_menu()
 
         # View menu
@@ -172,7 +172,6 @@ class MemoBookWindow(wx.Frame):
     def init_ui(self):
         """Initialize the user interface."""
         self._setup_menu()
-        self._build_memobooks_menu()
 
         self.panel = wx.Panel(self, wx.ID_ANY)
         self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -408,7 +407,7 @@ class MemoBookWindow(wx.Frame):
         """Open the manage memobooks dialog."""
         dlg = ManageMemoBooksDialog(parent=self)
         dlg.ShowModal()
-        self._build_memobooks_menu()
+        self._build_open_memobook_menu()
 
     ######################################## list events
 
