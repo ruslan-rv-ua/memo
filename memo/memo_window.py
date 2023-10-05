@@ -107,7 +107,7 @@ class MemoBookWindow(wx.Frame):
         # open last opened memobook
         if self.settings["last_opened_memobook"] not in self.settings["memobooks"]:
             self.settings["last_opened_memobook"] = self.settings["memobooks"][0]
-        self._open_memobook(self._get_memobook_path(self.settings["last_opened_memobook"]))
+        self._open_memobook(self.settings["last_opened_memobook"])
 
     def _build_open_memobook_menu(self):
         """Build the memobooks menu."""
@@ -121,7 +121,7 @@ class MemoBookWindow(wx.Frame):
             menu_item.Check(memobook_str_path == self.settings["last_opened_memobook"])
             self.Bind(
                 wx.EVT_MENU,
-                lambda event, path=path: self._open_memobook(path),
+                lambda event, str_path=memobook_str_path: self._open_memobook(str_path),
                 menu_item,
             )
         for i, memobook_str_path in enumerate(self.settings["memobooks"][9:]):  # noqa: B007
@@ -130,7 +130,7 @@ class MemoBookWindow(wx.Frame):
             menu_item.Check(memobook_str_path == self.settings["last_opened_memobook"])
             self.Bind(
                 wx.EVT_MENU,
-                lambda event, path=path: self._open_memobook(path),
+                lambda event, str_path=memobook_str_path: self._open_memobook(str_path),
                 menu_item,
             )
         self.menu_memobooks_delete.Enable(len(self.settings["memobooks"]) > 1)
@@ -232,8 +232,9 @@ class MemoBookWindow(wx.Frame):
         self.Bind(wx.html2.EVT_WEBVIEW_LOADED, self._on_web_view_loaded, self.web_view)
         self.Bind(wx.html2.EVT_WEBVIEW_ERROR, self._on_web_view_error, self.web_view)
 
-    def _open_memobook(self, memobook_path: Path):
+    def _open_memobook(self, memobook_str_path: Path):
         """Open the memobook at the given path."""
+        memobook_path = self._get_memobook_path(memobook_str_path)
         self.memobook = MemoBook(memobook_path)
 
         def rename_memo(memo, new_name):
@@ -246,7 +247,7 @@ class MemoBookWindow(wx.Frame):
         self.list_memos.SetFocus()
         self.list_memos.SetColumns([ColumnDefn(_("Memo"), "left", 800, "name", valueSetter=rename_memo)])
         self._update_memos(focus_on=0)
-        self.settings["last_opened_memobook"] = self.memobook.name
+        self.settings["last_opened_memobook"] = memobook_str_path
         self.settings.save()
         self.search_label.SetLabel(_("Search in") + f" {self.memobook.name}")
 
@@ -338,11 +339,16 @@ class MemoBookWindow(wx.Frame):
         self._build_open_memobook_menu()
 
     def _on_add_external_memobook(self, event):
+        """Add an external memobook."""
         # ask folder path
         dlg = wx.DirDialog(self, _("Choose a directory"), style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
         if dlg.ShowModal() != wx.ID_OK:
             return
         memobook_path = Path(dlg.GetPath())
+        # check if memobook is in the memobooks settings
+        if str(memobook_path) in self.settings["memobooks"]:
+            wx.MessageBox(_("This memobook is already added"), _("Error"), wx.OK | wx.ICON_ERROR)
+            return
         memobook = MemoBook.create(memobook_path, DEFAULT_MEMOBOOK_SETTINGS, exist_ok=True)
         if not memobook:
             wx.MessageBox(_("Could not create the memobook"), _("Error"), wx.OK | wx.ICON_ERROR)
@@ -352,7 +358,29 @@ class MemoBookWindow(wx.Frame):
         self._build_open_memobook_menu()
 
     def _on_delete_memobook(self, event):
-        pass
+        # ask confirmation
+        if (
+            wx.MessageBox(
+                _("Are you sure you want to delete the memobook?"),
+                _("Confirm deletion"),
+                wx.YES_NO | wx.ICON_WARNING,
+            )
+            != wx.YES
+        ):
+            return
+        # delete memobook from settings
+        memobook_str_path = self.settings["last_opened_memobook"]
+        self.settings["memobooks"].remove(memobook_str_path)
+        self.settings.save()
+        # message where files are left
+        memobook_path = self._get_memobook_path(memobook_str_path)
+        wx.MessageBox(
+            _(f"The memobook has been deleted.\n\nBut files are left in the following directory:\n{memobook_path}"),
+            _("Memobook deleted"),
+            wx.OK | wx.ICON_INFORMATION,
+        )
+        # open another memobook
+        self._open_memobook(self.self.settings["memobooks"][0])
 
     ############################################################ left part
     # view menu
