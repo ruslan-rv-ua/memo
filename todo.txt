@@ -1,5 +1,4 @@
 - fix: open link in external browser for note!
-- optimize caching, cache only for big files
 - try when parsed:
     length: length of an article, in characters;
     excerpt: article description, or short excerpt from the content;

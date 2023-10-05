@@ -42,8 +42,6 @@ class MemoBook:
         self.settings = Settings(self._settings_path)
         self.html2text_parser = HTML2MarkdownParser()
         self.html2text_parser.update_params(self.settings["html2text"])
-        self._cache_path = path / ".cache"
-        self._cache_path.mkdir(parents=True, exist_ok=True)
 
     @property
     def path(self) -> Path:
@@ -138,9 +136,6 @@ class MemoBook:
         memo = Memo(markdown)
         memo.update_hashtags([])
         memo_path.write_text(memo.markdown, encoding="utf-8")
-        cached_path = self._get_cached_memo_path(name)
-        if cached_path.exists():
-            cached_path.unlink()
         return name
 
     def rename_memo(self, old_name: str, new_name: str) -> str:
@@ -165,9 +160,6 @@ class MemoBook:
         if not name:
             return None
         memo_path.unlink()
-        cached_path = self._get_cached_memo_path(old_name)
-        if cached_path.exists():
-            cached_path.unlink()
         return name
 
     def get_memo_markdown(self, name: str) -> str:
