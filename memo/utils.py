@@ -33,19 +33,32 @@ class HTML2MarkdownParser:
 class Settings:
     """Settings cllas."""
 
-    def __init__(self, path: Path, default: dict) -> None:
+    def __init__(self, path: Path) -> None:
         """Create or open a settings file at the given path.
 
         Args:
             path: The path to the settings file.
-            default: The default settings to use if the settings file does not exist.
         """
         self._path = path
-        if path.exists():
-            self._settings = json.loads(path.read_text(encoding="utf-8"))
-        else:
-            self._settings = default
-            self.save()
+        if not path.exists():
+            raise FileNotFoundError(f"Settings file not found at {path}")
+        self._settings = json.loads(path.read_text(encoding="utf-8"))
+
+    @classmethod
+    def create(cls, path: Path, default_settings: dict) -> "Settings":
+        """Create a new settings file at the given path.
+
+        Args:
+            path: The path to the settings file.
+            default_settings: The default settings.
+
+        Returns:
+            The created settings file.
+        """
+        path.write_text(
+            json.dumps(default_settings, ensure_ascii=False, indent=4),
+            encoding="utf-8",  # TODO: no indent, no ensure_ascii
+        )
 
     def save(self):
         """Save the settings to the settings file."""

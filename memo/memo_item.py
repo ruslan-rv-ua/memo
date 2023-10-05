@@ -1,33 +1,25 @@
 """The memo module."""
 
-from pathlib import Path
 
 HASHTAGS_LINE_PREFIX = "Hashtags: "
 
 
-class MemoManipulator:
-    """A memo.
+class Memo:
+    """A memo."""
 
-    The memo is a text file with markdown syntax.
-    The first line is the title of the memo.
-    """
-
-    def __init__(self, markdown: str = ""):
+    def __init__(self, markdown: str = "", hashtags=None):
         """Initialize a new instance of the Memo class.
 
         Args:
             markdown (str): the content of the memo.
+            hashtags (list): the list of extra hashtags.
         """
         self._lines = markdown.strip().splitlines()
-
-    @classmethod
-    def from_path(cls, path: Path):
-        """Create a memo from the given path."""
-        # only absolute paths are allowed
-        return cls(path.read_text(encoding="utf-8"))
+        if hashtags:
+            self.set_hashtags(hashtags)
 
     @property
-    def content(self):
+    def markdown(self):
         """Get the content of the memo."""
         return "\n".join(self._lines)
 
@@ -81,16 +73,15 @@ class MemoManipulator:
             hashtags: the list of hashtags.
         """
         # all hashtags to lowercase
-        hashtags = [hashtag.lower() for hashtag in hashtags]
+        hashtags = [f"#{hashtag.lstrip('#').lower()}" for hashtag in hashtags]
         index = self._find_hashtags_line_index()
         if index < 0:
             # add new line
             self._lines.append("")
+            self._lines.append("")
             self._lines.append("---")
             self._lines.append("")
-            self._lines.append("")
             index = len(self._lines) - 1
-        # add hashtags line
         self._lines[index] = HASHTAGS_LINE_PREFIX + " ".join(sorted(hashtags))
 
     def update_hashtags(self, hashtags):
@@ -100,7 +91,3 @@ class MemoManipulator:
             hashtags: the list of hashtags.
         """
         self.set_hashtags(self.hashtags.union(set(hashtags)))
-
-    def save(self, path: Path):
-        """Save the memo to the given path."""
-        path.write_text(self.content, encoding="utf-8")

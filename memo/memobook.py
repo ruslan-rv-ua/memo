@@ -1,9 +1,10 @@
 """A memo book."""
 
 from datetime import datetime
+from gettext import gettext as _
 from pathlib import Path
 
-from memo_item import MemoManipulator
+from memo_item import Memo
 from templates import memo_template
 from utils import HTML2MarkdownParser, Settings
 
@@ -24,6 +25,9 @@ DEFAULT_HTML2TEXT_SETTINGS = {
 
 
 DEFAULT_MEMOBOOK_SETTINGS = {
+    "add_date_hashtag": True,
+    "add_bookmark_hashtag": True,
+    "add_memobook_name_hashtag": False,
     "html2text": DEFAULT_HTML2TEXT_SETTINGS,
 }
 
@@ -35,15 +39,26 @@ class MemoBook:
         """Create or open a memo book at the given path."""
         self._path = path
         self._settings_path = path / ".settings"
-
-        self.settings = Settings(self._settings_path, default=DEFAULT_MEMOBOOK_SETTINGS)
+        self.settings = Settings(self._settings_path)
         self.html2text_parser = HTML2MarkdownParser()
         self.html2text_parser.update_params(self.settings["html2text"])
+        self._cache_path = path / ".cache"
+        self._cache_path.mkdir(parents=True, exist_ok=True)
 
     @property
     def path(self) -> Path:
         """The path to the memo book."""
         return self._path
+
+    @property
+    def name(self) -> str:
+        """The name of the memo book."""
+        return self._path.name
+
+    @property
+    def is_protected(self) -> bool:
+        """Check if the memo book is protected."""
+        return self.settings["is_protected"]
 
     def _get_memo_path(self, name: str) -> Path:
         """Get the path to a memo."""
@@ -53,31 +68,29 @@ class MemoBook:
     # Memos
     ########################################
 
-    def add_memo(self, markdown: str, name: str = "", add_date_hashtag: bool = True, extra_hashtags=None) -> str:
+    def create_empty_memo_object(self) -> Memo:
+        """Create an empty memo."""
+        hashtags = set()
+        if self.settings["add_date_hashtag"]:
+            hashtags.add(datetime.now().strftime("#%Y-%m-%d"))  # noqa: DTZ005
+        if self.settings["add_memobook_name_hashtag"]:
+            hashtags.add(f"#{self.name}")
+        return Memo(markdown="", hashtags=hashtags)
+
+    def add_memo(self, memo_object: Memo, name: str = "") -> str:
         """Add a new memo to the memo book.
 
         Args:
-            markdown: The markdown of the memo.
+            memo_object: The memo to add.
             name: The name of the memo. If empty, the title of the memo is used.
-            add_date_hashtag: If True, add the date as a hashtag.
-            extra_hashtags: Extra hashtags to add to the memo.
 
         Returns:
             The name of the added memo or None if the memo was not added.
         """
-        memo = MemoManipulator(markdown)
-
-        # set hashtags
-        hashtags = set()
-        if add_date_hashtag:
-            hashtags.add(datetime.now().strftime("#%Y-%m-%d"))  # noqa: DTZ005
-        if extra_hashtags:
-            hashtags.update(set(extra_hashtags))
-        if hashtags:
-            memo.update_hashtags(hashtags)
+        memo_object.update_hashtags([])
 
         # file name
-        string_for_filename = name or memo.title
+        string_for_filename = name or memo_object.title
         name = self.make_file_stem_from_string(string_for_filename)
         if not name:
             return None
@@ -86,26 +99,28 @@ class MemoBook:
             # add timestamp to the file name
             name = f"{name}_{datetime.now().strftime('%Y%m%d%H%M%S')}"  # noqa: DTZ005
             memo_path = self._get_memo_path(name)
-        memo.save(memo_path)
+        memo_path.write_text(memo_object.markdown, encoding="utf-8")
         return name
 
-    def add_memo_from_html(self, html: str, name: str = "", add_date_hashtag: bool = True, extra_hashtags=None) -> str:
+    def add_memo_from_html(self, html: str, name: str = "", url: str = "") -> str:
         """Add a new memo to the memo book from HTML.
 
         Args:
             html: The HTML of the memo.
             name: The name of the memo. If empty, the title of the memo is used.
-            add_date_hashtag: If True, add the date as a hashtag.
-            extra_hashtags: Extra hashtags to add to the memo.
+            url: The URL where HTML was taken from.
 
         Returns:
             The name of the added memo or None if the memo was not added.
         """
         markdown = self.html2text_parser.parse(html)
-        if not name:
-            memo_manipulator = MemoManipulator(markdown=markdown)
-            name = memo_manipulator.title
-        return self.add_memo(markdown, name=name, add_date_hashtag=add_date_hashtag, extra_hashtags=extra_hashtags)
+        Path("temp.md").write_text(markdown, encoding="utf-8")
+        if url:
+            markdown = f"<{url}>\n\n{markdown}"
+        temp_memo_object = self.create_empty_memo_object()
+        memo_object = Memo(markdown + temp_memo_object.markdown)
+        memo_object.update_hashtags([_("#bookmark")])
+        return self.add_memo(memo_object, name=name)
 
     def update_memo(self, name: str, markdown: str) -> str:
         """Update a memo in the memo book.
@@ -120,8 +135,39 @@ class MemoBook:
         memo_path = self._get_memo_path(name)
         if not memo_path.exists():
             return None
-        memo = MemoManipulator(markdown)
-        memo.save(memo_path)
+        memo = Memo(markdown)
+        memo.update_hashtags([])
+        memo_path.write_text(memo.markdown, encoding="utf-8")
+        cached_path = self._get_cached_memo_path(name)
+        if cached_path.exists():
+            cached_path.unlink()
+        return name
+
+    def rename_memo(self, old_name: str, new_name: str) -> str:
+        """Rename a memo in the memo book.
+
+        Args:
+            old_name: The old name of the memo.
+            new_name: The new name of the memo.
+
+        Returns:
+            The name of the renamed memo or None if
+
+        Raises:
+            FileNotFoundError: If the memo was not found.
+        """
+        memo_path = self._get_memo_path(old_name)
+        if not memo_path.exists():
+            raise FileNotFoundError(f"Memo '{old_name}' not found.")
+        memo_object = Memo(memo_path.read_text(encoding="utf-8"))
+        memo_object.update_hashtags([])
+        name = self.add_memo(memo_object, name=new_name)
+        if not name:
+            return None
+        memo_path.unlink()
+        cached_path = self._get_cached_memo_path(old_name)
+        if cached_path.exists():
+            cached_path.unlink()
         return name
 
     def get_memo_markdown(self, name: str) -> str:
@@ -232,3 +278,21 @@ class MemoBook:
             filename = filename[:MAX_FILENAME_LENGTH]
         # remove consecutive spaces
         return " ".join(filename.split())
+
+    ########################################
+    @classmethod
+    def create(cls, path: Path, default_settings, exist_ok: bool = False) -> "MemoBook":
+        """Create a new memo book at the given path.
+
+        Args:
+            path: The path to the memo book.
+            default_settings: The default settings for the memo book.
+            exist_ok: If True, do not raise an exception if the memo book already exists.
+
+        Returns:
+            The created memo book.
+        """
+        path.mkdir(parents=True, exist_ok=exist_ok)
+        settings_path = path / ".settings"
+        Settings.create(settings_path, default_settings)
+        return cls(path)
