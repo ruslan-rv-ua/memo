@@ -24,6 +24,7 @@ markdown2 = {extras = ["all"], version = "^2.4.10"}
 html2text = "^2020.1.16"
 readability-lxml = "^0.8.1"
 courlan = "^0.9.4"
+markdown-it-pyrs = "^0.3.0"
 
 [tool.poetry.group.lint.dependencies]
 black = "*"

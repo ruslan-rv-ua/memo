@@ -1,20 +1,9 @@
 """Templates for memo app."""
 from pathlib import Path
 
-from markdown2 import Markdown
+from markdown_it_pyrs import MarkdownIt
 
-markdowner = Markdown(
-    extras=[
-        "toc",
-        "metadata ",
-        "code-friendly",
-        "fenced-code-blocks",
-        "target-blank-links",
-        "tables",
-        "tag-friendly",
-        "task_list",
-    ]
-)
+markdowner = MarkdownIt("gfm")
 
 
 class Templates:
@@ -27,7 +16,7 @@ class Templates:
 
     def render(self, markdown: str) -> str:
         """Render the template with the given title and content."""
-        content = markdowner.convert(markdown)
+        content = markdowner.render(markdown)
         return self.template.replace("{{content}}", content)
 
 

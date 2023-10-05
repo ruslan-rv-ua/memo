@@ -218,13 +218,9 @@ class MemoBook:
         Returns:
             The renedered HTML of the memo.
         """
-        cached_path = self._get_cached_memo_path(name)
-        if cached_path.exists():
-            return cached_path.read_text(encoding="utf-8")
+        # if cached_path.exists():
         markdown = self._get_memo_path(name).read_text(encoding="utf-8")
-        html = memo_template.render(markdown=markdown)
-        cached_path.write_text(html, encoding="utf-8")
-        return html
+        return memo_template.render(markdown=markdown)
 
     @staticmethod
     def make_file_stem_from_string(from_string):
