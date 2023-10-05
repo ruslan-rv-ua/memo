@@ -119,9 +119,9 @@ class MemoBookWindow(wx.Frame):
         """Build the memobooks menu."""
         # clear menu
         for item in self.menu_memobooks_menu_open.GetMenuItems():
-            self.menu_memobooks.Delete(item)
+            self.menu_memobooks_menu_open.Delete(item)
 
-        for i, memobook_str_path in enumerate(self.settings["memobooks"], start=1):
+        for i, memobook_str_path in enumerate(self.settings["memobooks"][:9], start=1):
             path = self._get_memobook_path(memobook_str_path)
             menu_item = self.menu_memobooks_menu_open.AppendRadioItem(wx.ID_ANY, path.name + f"\tCtrl+{i}")
             menu_item.Check(memobook_str_path == self.settings["last_opened_memobook"])
@@ -130,6 +130,16 @@ class MemoBookWindow(wx.Frame):
                 lambda event, path=path: self._open_memobook(path),
                 menu_item,
             )
+        for i, memobook_str_path in enumerate(self.settings["memobooks"][9:]):  # noqa: B007
+            path = self._get_memobook_path(memobook_str_path)
+            menu_item = self.menu_memobooks_menu_open.AppendRadioItem(wx.ID_ANY, path.name)
+            menu_item.Check(memobook_str_path == self.settings["last_opened_memobook"])
+            self.Bind(
+                wx.EVT_MENU,
+                lambda event, path=path: self._open_memobook(path),
+                menu_item,
+            )
+        self.menu_memobooks_delete.Enable(len(self.settings["memobooks"]) > 1)
 
     def _setup_menu(self):
         self.menubar = wx.MenuBar()
@@ -141,10 +151,18 @@ class MemoBookWindow(wx.Frame):
         # `open` sub-menu
         self.menu_memobooks_menu_open = wx.Menu()
         self.menu_memobooks_open = self.menu_memobooks.AppendSubMenu(self.menu_memobooks_menu_open, _("Open"))
+        # rest of the menu is built in `_build_open_memobook_menu`
 
-        # rest of the menu is built in _build_memobooks_menu()
+        self.menu_memobooks_new = self.menu_memobooks.Append(wx.ID_ANY, _("New\tF7"))
+        self.Bind(wx.EVT_MENU, self._on_new_memobook, self.menu_memobooks_new)
 
-        # View menu
+        self.menu_memobooks_add = self.menu_memobooks.Append(wx.ID_ANY, _("Add\tF5"))
+        self.Bind(wx.EVT_MENU, self._on_add_memo, self.menu_memobooks_add)
+
+        self.menu_memobooks_delete = self.menu_memobooks.Append(wx.ID_ANY, _("Delete\tF8"))
+        self.Bind(wx.EVT_MENU, self._on_delete_memobook, self.menu_memobooks_delete)
+
+        ##### View menu
         self.menu_view = wx.Menu()
 
         self.menu_view_reset_search_results = self.menu_view.Append(wx.ID_ANY, _("Reset search results\tCtrl+R"))
@@ -152,7 +170,7 @@ class MemoBookWindow(wx.Frame):
 
         self.menubar.Append(self.menu_view, _("View"))
 
-        # Memo menu
+        ##### Memo menu
         self.menu_memo = wx.Menu()
 
         self.menu_memo_add_memo = self.menu_memo.Append(wx.ID_ANY, _("Add memo\tCtrl+M"))
@@ -306,6 +324,34 @@ class MemoBookWindow(wx.Frame):
         return None
 
     ######################################## menu events
+    # memobooks menu
+    ######################################## menu events
+
+    def _on_new_memobook(self, event):
+        # get memobook name
+        memobook_name = wx.GetTextFromUser(_("Enter the name of the memobook"), _("New memobook"), "")
+        if not memobook_name:
+            return
+        memobook_name = MemoBook.make_file_stem_from_string(memobook_name)
+        if memobook_name in self.settings["memobooks"]:
+            wx.MessageBox(_("A memobook with this name already exists"), _("Error"), wx.OK | wx.ICON_ERROR)
+            return
+        # create memobook
+        memobook_path = self.memobooks_path / memobook_name
+        MemoBook.create(memobook_path, DEFAULT_MEMOBOOK_SETTINGS, exist_ok=True)
+        self.settings["memobooks"].append(memobook_name)
+        self.settings.save()
+        self._build_open_memobook_menu()
+
+    def _on_add_memobook(self, event):
+        pass
+
+    def _on_delete_memobook(self, event):
+        pass
+
+    ############################################################ left part
+    # view menu
+    ############################################################ left part
 
     def _on_reset_search_results(self, event):
         self.search_text.SetValue("")

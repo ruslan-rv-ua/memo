@@ -1,7 +1,16 @@
 {
     "memobooks_dir": "memobooks",
-    "last_opened_memobook": "My Memos",
+    "last_opened_memobook": "test",
     "memobooks": [
-        "My Memos"
+        "My Memos",
+        "test",
+        "11",
+        "12",
+        "123",
+        "23",
+        "31",
+        "323",
+        "41",
+        "42"
     ]
 }
