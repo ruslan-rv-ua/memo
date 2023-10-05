@@ -1,9 +1,61 @@
 """This module contains ManageMemoBooksDialog class."""
 
 from gettext import gettext as _
+from pathlib import Path
 
 import wx
-from ObjectListView import ColumnDefn, ObjectListView
+from ObjectListView import ColumnDefn, FastObjectListView
+
+from memo.memobook import DEFAULT_MEMOBOOK_SETTINGS, MemoBook
+
+
+class DeleteMemoBookDialog(wx.Dialog):
+    """This class is a dialog for deleting MemoBook."""
+
+    def __init__(self, parent, memobook_name):
+        """Initialize DeleteMemoBookDialog."""
+        super().__init__(parent, title=_("Delete MemoBook"), size=(400, 300))
+        self.app_window = parent
+        self.memobook_name = memobook_name
+        self._create_ui()
+        # size 800x600, position in the center of the screen
+        self.SetSize((800, 600))
+        self.Centre()
+
+    def _create_ui(self):
+        self.panel = wx.Panel(self)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        # message
+        self.label_message = wx.StaticText(
+            self.panel, label=_("Do you want to delete MemoBook {}?").format(self.memobook_name)
+        )
+        self.sizer.Add(self.label_message, 0, wx.EXPAND | wx.ALL, 10)
+        # checkbox
+        self.checkbox_delete_from_disk = wx.CheckBox(self.panel, label=_("Delete from disk"))
+        self.sizer.Add(self.checkbox_delete_from_disk, 0, wx.EXPAND | wx.ALL, 10)
+        # buttons
+        self.button_yes = wx.Button(self.panel, label=_("Yes"))
+        self.button_yes.Bind(wx.EVT_BUTTON, self.on_button_yes_clicked)
+        self.button_no = wx.Button(self.panel, label=_("No"))
+        self.button_no.Bind(wx.EVT_BUTTON, self.on_button_no_clicked)
+        buttons_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        buttons_sizer.Add(self.button_yes, 0, wx.EXPAND, 10)
+        buttons_sizer.Add(self.button_no, 0, wx.EXPAND, 10)
+        self.sizer.Add(buttons_sizer, 0, wx.EXPAND | wx.ALL, 10)
+        self.panel.SetSizer(self.sizer)
+
+    def on_button_yes_clicked(self, event):
+        """Delete MemoBook."""
+        self.EndModal(wx.ID_YES)
+
+    def on_button_no_clicked(self, event):
+        """Do not delete MemoBook."""
+        self.EndModal(wx.ID_NO)
+
+    @property
+    def delete_from_disk(self):
+        """Get delete from disk checkbox value."""
+        return self.checkbox_delete_from_disk.GetValue()
 
 
 class ManageMemoBooksDialog(wx.Dialog):
@@ -14,16 +66,18 @@ class ManageMemoBooksDialog(wx.Dialog):
         super().__init__(parent, title=_("Manage MemoBooks"), size=(400, 300))
         self.app_window = parent
         self._create_ui()
+        # size 800x600, position in the center of the screen
+        self.SetSize((800, 600))
         self.Centre()
 
     def _create_ui(self):
         self.panel = wx.Panel(self)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         # left - list with memobooks names, no columns headers
-        self.list_memobooks = ObjectListView(self.panel, style=wx.LC_REPORT | wx.SUNKEN_BORDER)
+        self.list_memobooks = FastObjectListView(self.panel, style=wx.LC_REPORT | wx.SUNKEN_BORDER)
         self.list_memobooks.SetColumns(
             [
-                ColumnDefn(_("MemoBooks"), "left", 200, "name"),
+                ColumnDefn(_("MemoBooks"), "left", 700, valueGetter=lambda x: x),
             ]
         )
         self.list_memobooks.Bind(wx.EVT_LIST_ITEM_FOCUSED, self.on_memobook_selected)
@@ -67,16 +121,14 @@ class ManageMemoBooksDialog(wx.Dialog):
     def on_memobook_selected(self, event):
         """Enable/disable buttons based on selected item."""
         index = self.list_memobooks.GetFocusedItem()
-        item = self.list_memobooks.GetSelectedObject()
-        self.button_move_up.Enable(item["is_protected"] is False and index > 1)
-        self.button_move_down.Enable(
-            item["is_protected"] is False and index < len(self.app_window.settings["memobooks"]) - 1
-        )
-        self.button_delete_memobook.Enable(item["is_protected"] is False)
+        self.list_memobooks.GetSelectedObject()
+        self.button_move_up.Enable(index > 0)
+        self.button_move_down.Enable(index < len(self.app_window.settings["memobooks"]) - 1)
+        self.button_delete_memobook.Enable(self.list_memobooks.GetItemCount() > 1)
 
     def _is_memobook_name_used(self, name):
         """Check if memobook name is already used."""
-        return any(item["name"] == name for item in self.app_window.settings["memobooks"])
+        return any(item == name for item in self.app_window.settings["memobooks"])
 
     def on_button_create_memobook_clicked(self, event):
         """Create new MemoBook."""
@@ -88,62 +140,39 @@ class ManageMemoBooksDialog(wx.Dialog):
         dlg = wx.DirDialog(self, _("Select MemoBook folder"))
         if dlg.ShowModal() == wx.ID_CANCEL:
             return
-        folder_path = dlg.GetPath()
+        folder_str_path = dlg.GetPath()
         # check if folder is already in list
         for item in self.app_window.settings["memobooks"]:
-            if item["path"] == folder_path:
+            if item == folder_str_path:
                 wx.MessageBox(_("This MemoBook is already used."), _("Error"), wx.OK | wx.ICON_ERROR)
                 return
-        name = folder_path.split("/")[-1]
-        # if memobook name is already used - ask for new name
-        while True:
-            dlg = wx.TextEntryDialog(self, _("MemoBook name"), _("Enter MemoBook name"), name)
-            if dlg.ShowModal() == wx.ID_CANCEL:
-                return
-            name = dlg.GetValue()
-            # check if name is valid for file name (letters, numbers, spaces, dashes, underscores)
-            if not name.replace(" ", "").replace("-", "").replace("_", "").isalnum():
-                wx.MessageBox(_("MemoBook name is not valid."), _("Error"), wx.OK | wx.ICON_ERROR)
-                continue
-            # check if name is already used
-            if self._is_memobook_name_used(name):
-                wx.MessageBox(_("This MemoBook name is already used."), _("Error"), wx.OK | wx.ICON_ERROR)
-                continue
-            break
-        # add to list
-        self.app_window.settings["memobooks"].append({"name": name, "path": folder_path, "is_protected": False})
-        # TODO: create memobook
+        folder_path = Path(folder_str_path)
+        memobook = MemoBook.create(folder_path, default_settings=DEFAULT_MEMOBOOK_SETTINGS, exist_ok=True)
+        self.app_window.settings["memobooks"].append(str(memobook.path))
+        self.app_window.settings.save()
+        self.list_memobooks.SetObjects(self.app_window.settings["memobooks"])
+        self.list_memobooks.Focus(len(self.app_window.settings["memobooks"]) - 1)
+        self.list_memobooks.Select(len(self.app_window.settings["memobooks"]) - 1)
 
     def on_button_delete_memobook_clicked(self, event):
         """Delete selected item."""
         # get confirmation
         index = self.list_memobooks.GetFocusedItem()
         item = self.list_memobooks.GetSelectedObject()
-        if (
-            wx.MessageBox(
-                _("Are you sure you want to delete MemoBook {}?").format(item["name"]),
-                _("Confirm delete"),
-                wx.YES_NO | wx.ICON_QUESTION,
-            )
-            == wx.NO
-        ):
+        # dialog: yes, no, checkbox for delete from disk
+        dlg = DeleteMemoBookDialog(self, item)
+        if dlg.ShowModal() == wx.ID_NO:
             return
         # delete from list
         self.app_window.settings["memobooks"].remove(item)
         self.list_memobooks.SetObjects(self.app_window.settings["memobooks"])
         self.list_memobooks.Focus(index - 1)
         self.list_memobooks.Select(index - 1)
-        # ask delete from disk or only from list
-        if (
-            wx.MessageBox(
-                _("Do you want to delete MemoBook {} from disk?").format(item["name"]),
-                _("Confirm delete"),
-                wx.YES_NO | wx.ICON_QUESTION,
-            )
-            == wx.YES
-        ):
-            # delete from disk
-            pass  # TODO
+        # delete from disk
+        if dlg.delete_from_disk:
+            # TODO
+            pass
+        self.app_window.settings.save()
 
     def on_button_move_up_clicked(self, event):
         """Move selected item up."""
@@ -151,6 +180,7 @@ class ManageMemoBooksDialog(wx.Dialog):
         item = self.list_memobooks.GetSelectedObject()
         self.app_window.settings["memobooks"].remove(item)
         self.app_window.settings["memobooks"].insert(index - 1, item)
+        self.app_window.settings.save()
         self.list_memobooks.SetObjects(self.app_window.settings["memobooks"])
         self.list_memobooks.Focus(index - 1)
         self.list_memobooks.Select(index - 1)
@@ -161,6 +191,7 @@ class ManageMemoBooksDialog(wx.Dialog):
         item = self.list_memobooks.GetSelectedObject()
         self.app_window.settings["memobooks"].remove(item)
         self.app_window.settings["memobooks"].insert(index + 1, item)
+        self.app_window.settings.save()
         self.list_memobooks.SetObjects(self.app_window.settings["memobooks"])
         self.list_memobooks.Focus(index + 1)
         self.list_memobooks.Select(index + 1)

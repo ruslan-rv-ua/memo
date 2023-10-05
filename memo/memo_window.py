@@ -84,8 +84,6 @@ class MemoBookWindow(wx.Frame):
             memobook_str_path: The path to the memobook to remove.
         """
         self.settings["memobooks"].remove(memobook_str_path)
-        if self.settings["last_opened_memobook"] == memobook_str_path:
-            self.settings["last_opened_memobook"] = None
         self.settings.save()
 
     def _load_memobooks(self):
@@ -113,8 +111,7 @@ class MemoBookWindow(wx.Frame):
             self.settings.save()
         self._build_memobooks_menu()
         # open last opened memobook
-        last_opened_memobook = self.settings["last_opened_memobook"]
-        if not last_opened_memobook:
+        if self.settings["last_opened_memobook"] not in self.settings["memobooks"]:
             last_opened_memobook = self.settings["memobooks"][0]
         self._open_memobook(self._get_memobook_path(last_opened_memobook))
 
