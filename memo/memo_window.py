@@ -112,8 +112,8 @@ class MemoBookWindow(wx.Frame):
         self._build_memobooks_menu()
         # open last opened memobook
         if self.settings["last_opened_memobook"] not in self.settings["memobooks"]:
-            last_opened_memobook = self.settings["memobooks"][0]
-        self._open_memobook(self._get_memobook_path(last_opened_memobook))
+            self.settings["last_opened_memobook"] = self.settings["memobooks"][0]
+        self._open_memobook(self._get_memobook_path(self.settings["last_opened_memobook"]))
 
     def _build_memobooks_menu(self):
         """Build the memobooks menu."""
