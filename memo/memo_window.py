@@ -221,6 +221,19 @@ class MemoBookWindow(wx.Frame):
                 return i
         return None
 
+    def _get_webview_links(self):
+        """Get all links in the web view.
+
+        Returns:
+            A list of dicts with the following keys: "url", "text" or None if no links were found.
+        """
+        success, links_str = self.web_view.RunScript(
+            "const getAllLinks=()=>Array.from(document.querySelectorAll('a')).map(link=>({url:link.href,text:link.textContent.trim()}));getAllLinks();"  # noqa: E501
+        )
+        if not success or not links_str:
+            return None
+        return json.loads(links_str)
+
     ######################################## menu events
 
     def _on_focus_quick_search(self, event):
@@ -338,11 +351,7 @@ class MemoBookWindow(wx.Frame):
 
     def _on_activate_memo(self, event):
         """Open in browser first link in Web view."""
-        success, first_link = self.web_view.RunScript(
-            """var first_link="";var links=document.getElementsByTagName("a");"""
-            """if(links.length>0){first_link=links[0].href;}first_link;"""
-        )
-        if not success or not first_link:
-            return
-        # open link in browser
-        wx.LaunchDefaultBrowser(first_link)
+        links = self._get_webview_links()
+        # open first link in browser
+        if links:
+            wx.LaunchDefaultBrowser(links[0]["url"])
