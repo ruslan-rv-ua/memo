@@ -273,9 +273,7 @@ class MemoBookWindow(wx.Frame):
                 else:
                     include.append(word)
             # filter memos
-            self.data = self.memobook.search(
-                include=include, exclude=exclude, quick_search=False
-            )  # TODO: quick_search=True
+            self.data = self.memobook.search(include=include, exclude=exclude, quick_search=False)
         self.list_memos.SetObjects(self.data)
         if len(self.data) == 0:
             self.web_view.SetPage("<h1>No memos found</h1>", "")  # TODO: use "about app" page

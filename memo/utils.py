@@ -57,14 +57,12 @@ class Settings:
         """
         path.write_text(
             json.dumps(default_settings, ensure_ascii=False, indent=4),
-            encoding="utf-8",  # TODO: no indent, no ensure_ascii
+            encoding="utf-8",
         )
 
     def save(self):
         """Save the settings to the settings file."""
-        self._path.write_text(
-            json.dumps(self._settings, ensure_ascii=False, indent=4), encoding="utf-8"
-        )  # TODO: no indent, no ensure_ascii
+        self._path.write_text(json.dumps(self._settings, ensure_ascii=False, indent=4), encoding="utf-8")
 
     def __getitem__(self, key):
         """Get the value of the given key."""

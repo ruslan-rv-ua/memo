@@ -1,13 +1,14 @@
-- add bookmark with parameters
 - edit memobook settings
     - ask ro not to add very large parsed bookmark text
     - what to include when parseing (description, full content, ...)
 - try when parsed:
     length: length of an article, in characters;
     excerpt: article description, or short excerpt from the content;
+- add bookmark with parameters
 - external editors
 - export
 - import
 - other file types: html, doc, pdf
 - quick and full search
 - button to copy code to clipboard
+- i18n

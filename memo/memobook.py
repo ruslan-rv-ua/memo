@@ -160,6 +160,9 @@ class MemoBook:
         if not name:
             return None
         memo_path.unlink()
+        cached_path = self._get_cached_memo_path(old_name)
+        if cached_path.exists():
+            cached_path.unlink()
         return name
 
     def get_memo_markdown(self, name: str) -> str:
