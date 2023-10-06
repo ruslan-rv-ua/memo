@@ -156,13 +156,12 @@ class MemoBookWindow(wx.Frame):
         self.menu_memobooks_delete = self.menu_memobooks.Append(wx.ID_ANY, _("Delete\tF8"))
         self.Bind(wx.EVT_MENU, self._on_delete_memobook, self.menu_memobooks_delete)
 
-        ##### View menu
-        self.menu_view = wx.Menu()
+        ##### Search menu
+        self.menu_search = wx.Menu()
+        self.menubar.Append(self.menu_search, _("Search"))
 
-        self.menu_view_reset_search_results = self.menu_view.Append(wx.ID_ANY, _("Reset search results\tCtrl+R"))
-        self.Bind(wx.EVT_MENU, self._on_reset_search_results, self.menu_view_reset_search_results)
-
-        self.menubar.Append(self.menu_view, _("View"))
+        self.menu_search_reset_results = self.menu_search.Append(wx.ID_ANY, _("Reset search results\tEsc"))
+        self.Bind(wx.EVT_MENU, self._on_reset_search_results, self.menu_search_reset_results)
 
         ##### Memo menu
         self.menu_memo = wx.Menu()
@@ -400,8 +399,22 @@ class MemoBookWindow(wx.Frame):
     ############################################################ left part
 
     def _on_reset_search_results(self, event):
-        self.search_text.SetValue("")
-        self._update_memos(focus_on=0)
+        """Reset the search results or exit the application."""
+        if self.search_text.GetValue():
+            self.search_text.SetValue("")
+            self._update_memos(focus_on=0)
+            return
+        # ask confirmation, default button is "No"
+        if (
+            wx.MessageBox(
+                _("Are you sure you want to exit the application?"),
+                _("Confirm exit"),
+                wx.YES_NO | wx.ICON_WARNING | wx.NO_DEFAULT,
+            )
+            != wx.YES
+        ):
+            return
+        self.Close()
 
     ############################################################
     # memo menu
