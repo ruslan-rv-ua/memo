@@ -393,7 +393,7 @@ class MemoBookWindow(wx.Frame):
             wx.OK | wx.ICON_INFORMATION,
         )
         # open another memobook
-        self._open_memobook(self.self.settings["memobooks"][0])
+        self._open_memobook(self.settings["memobooks"][0])
 
     ############################################################ left part
     # view menu
