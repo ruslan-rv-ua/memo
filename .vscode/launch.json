@@ -5,7 +5,7 @@
             "name": "Python: main.py",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/memo/main.py",
+            "program": "${workspaceFolder}/memobook/main.py",
             "console": "externalTerminal",
             "justMyCode": true
         }

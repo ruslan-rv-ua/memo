@@ -4,7 +4,7 @@ from datetime import datetime
 from gettext import gettext as _
 from pathlib import Path
 
-from memo_item import Memo
+from memo import Memo
 from templates import memo_template
 from utils import HTML2MarkdownParser, Settings
 
