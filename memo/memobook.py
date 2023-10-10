@@ -112,7 +112,6 @@ class MemoBook:
             The name of the added memo or None if the memo was not added.
         """
         markdown = self.html2text_parser.parse(html)
-        Path("temp.md").write_text(markdown, encoding="utf-8")
         if url:
             markdown = f"<{url}>\n\n{markdown}"
         temp_memo_object = self.create_empty_memo_object()
