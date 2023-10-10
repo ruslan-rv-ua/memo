@@ -1,4 +1,3 @@
-- no exit on `escape` key
 - memo
     - location
         - copy

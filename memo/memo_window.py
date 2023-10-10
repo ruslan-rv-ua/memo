@@ -430,7 +430,7 @@ class MemoBookWindow(wx.Frame):
             return
         memo = Memo(markdown)
         name = self.memobook.add_memo(memo)
-        self._on_reset_search_results(None)
+        self.search_text.SetValue("")  # to reset the search results
         self._update_memos(name)
 
     def _on_add_bookmark(self, event):
@@ -476,7 +476,7 @@ class MemoBookWindow(wx.Frame):
         if not name:
             wx.MessageBox(_("Could not add the bookmark"), _("Error"), wx.OK | wx.ICON_ERROR)
             return
-        self._on_reset_search_results(None)
+        self.search_text.SetValue("")  # to reset the search results
         self._update_memos(name)
 
     def _on_edit_memo(self, event):
