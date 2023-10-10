@@ -1,6 +1,14 @@
+- memobook name in list header
+- no exit on `escape` key
+- switch to just added or created memobook
+- memo
+    - location
+        - copy
+        - open folder
 - edit memobook settings
     - ask ro not to add very large parsed bookmark text
     - what to include when parseing (description, full content, ...)
+    - confirm exit or not
 - try when parsed:
     length: length of an article, in characters;
     excerpt: article description, or short excerpt from the content;

@@ -1,10 +1,38 @@
 """Utilities for the memo package."""
 
 
+import ctypes
 import json
 from pathlib import Path
 
 from html2text import HTML2Text
+
+
+# clipboard, Windows only
+def copy_to_clipboard(text: str) -> None:
+    """Copy the given text to the clipboard.
+
+    Args:
+        text: The text to copy to the clipboard.
+    """
+    ctypes.windll.user32.OpenClipboard(0)
+    ctypes.windll.user32.EmptyClipboard()
+    ctypes.windll.user32.SetClipboardData(1, ctypes.create_string_buffer(text.encode("utf-8")))
+    ctypes.windll.user32.CloseClipboard()
+
+
+def get_clipboard_text() -> str:
+    """Get the text from the clipboard.
+
+    Returns:
+        The text from the clipboard.
+    """
+    try:
+        ctypes.windll.user32.OpenClipboard(0)
+        text = ctypes.windll.user32.GetClipboardData(1).decode("utf-8")
+    finally:
+        ctypes.windll.user32.CloseClipboard()
+    return text
 
 
 class HTML2MarkdownParser:
