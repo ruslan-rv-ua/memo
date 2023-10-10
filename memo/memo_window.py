@@ -116,8 +116,7 @@ class MemoBookWindow(wx.Frame):
             self.menu_memobooks_menu_open.Delete(item)
 
         for i, memobook_str_path in enumerate(self.settings["memobooks"][:9], start=1):
-            path = self._get_memobook_path(memobook_str_path)
-            menu_item = self.menu_memobooks_menu_open.AppendRadioItem(wx.ID_ANY, path.name + f"\tCtrl+{i}")
+            menu_item = self.menu_memobooks_menu_open.AppendRadioItem(wx.ID_ANY, memobook_str_path + f"\tCtrl+{i}")
             menu_item.Check(memobook_str_path == self.settings["last_opened_memobook"])
             self.Bind(
                 wx.EVT_MENU,
@@ -125,8 +124,7 @@ class MemoBookWindow(wx.Frame):
                 menu_item,
             )
         for i, memobook_str_path in enumerate(self.settings["memobooks"][9:]):  # noqa: B007
-            path = self._get_memobook_path(memobook_str_path)
-            menu_item = self.menu_memobooks_menu_open.AppendRadioItem(wx.ID_ANY, path.name)
+            menu_item = self.menu_memobooks_menu_open.AppendRadioItem(wx.ID_ANY, memobook_str_path)
             menu_item.Check(memobook_str_path == self.settings["last_opened_memobook"])
             self.Bind(
                 wx.EVT_MENU,
@@ -150,7 +148,7 @@ class MemoBookWindow(wx.Frame):
         self.menu_memobooks_new = self.menu_memobooks.Append(wx.ID_ANY, _("New\tF7"))
         self.Bind(wx.EVT_MENU, self._on_new_internal_memobook, self.menu_memobooks_new)
 
-        self.menu_memobooks_add = self.menu_memobooks.Append(wx.ID_ANY, _("Add\tCtrl+F7"))
+        self.menu_memobooks_add = self.menu_memobooks.Append(wx.ID_ANY, _("Connect\tCtrl+F7"))
         self.Bind(wx.EVT_MENU, self._on_add_external_memobook, self.menu_memobooks_add)
 
         self.menu_memobooks_delete = self.menu_memobooks.Append(wx.ID_ANY, _("Delete\tF8"))
