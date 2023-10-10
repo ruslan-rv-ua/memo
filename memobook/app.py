@@ -8,12 +8,11 @@ from pathlib import Path
 import wx
 import wx.html2
 from courlan import check_url
-from ObjectListView import ColumnDefn, FastObjectListView
-
 from editor_window import EditorDialog
-from memo_item import Memo
-from memobook import DEFAULT_MEMOBOOK_SETTINGS, MemoBook
+from ObjectListView import ColumnDefn, FastObjectListView
 from utils import Settings
+
+from memobook import DEFAULT_MEMOBOOK_SETTINGS, MemoBook
 
 MEMOBOOKS_DIR_NAME = "memobooks"
 DEFAULT_MEMOBOOK_NAME = _("My Memos")  # TRANSLATORS: This is the name of the default memobook.
@@ -419,15 +418,10 @@ class MemoBookWindow(wx.Frame):
     ############################################################
 
     def _on_add_memo(self, event):
-        memo = self.memobook.create_empty_memo_object()
-        edit_dlg = EditorDialog(parent=self, title=_("Add memo"), value=memo.markdown)
+        edit_dlg = EditorDialog(parent=self, title=_("Add memo"), value="")
         if edit_dlg.ShowModal() != wx.ID_OK:
             return
-        markdown = edit_dlg.value
-        if markdown == memo.markdown:
-            return
-        memo = Memo(markdown)
-        name = self.memobook.add_memo(memo)
+        name = self.memobook.add_memo(edit_dlg.value)
         self.search_text.SetValue("")  # to reset the search results
         self._update_memos(name)
 
@@ -470,11 +464,13 @@ class MemoBookWindow(wx.Frame):
         article = json.loads(article_json)
         readable_html = article["content"]
         name = f"{article['title']} ({self.domain_name})" if article["title"] else self.domain_name
-        name = self.memobook.add_memo_from_html(html=readable_html, name=name, url=self.url)
+        name = self.memobook.add_memo_from_html(
+            html=readable_html, name=name, title=article["title"], link=self.url, link_text=self.domain_name
+        )
         if not name:
             wx.MessageBox(_("Could not add the bookmark"), _("Error"), wx.OK | wx.ICON_ERROR)
             return
-        self.search_text.SetValue("")  # to reset the search results
+        self.search_text.SetValue("")  # to reset the search results TODO: make this a method
         self._update_memos(name)
 
     def _on_edit_memo(self, event):
