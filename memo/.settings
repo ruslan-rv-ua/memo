@@ -1,10 +1,11 @@
 {
     "memobooks_dir": "memobooks",
-    "last_opened_memobook": "E:\\dev\\memo\\test_memobook",
+    "last_opened_memobook": "C:\\downloads\\2",
     "memobooks": [
         "My Memos",
         "test",
         "E:\\1\\Old Home",
-        "E:\\dev\\memo\\test_memobook"
+        "E:\\dev\\memo\\test_memobook",
+        "C:\\downloads\\2"
     ]
 }

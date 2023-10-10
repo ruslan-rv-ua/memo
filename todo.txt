@@ -1,5 +1,4 @@
 - no exit on `escape` key
-- switch to just added or created memobook
 - memo
     - location
         - copy

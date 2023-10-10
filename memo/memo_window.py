@@ -103,13 +103,13 @@ class MemoBookWindow(wx.Frame):
             self.settings["memobooks"].append(DEFAULT_MEMOBOOK_NAME)
             self.settings["last_opened_memobook"] = DEFAULT_MEMOBOOK_NAME
             self.settings.save()
-        self._build_open_memobook_menu()
+        self._build_memobooks_menu()
         # open last opened memobook
         if self.settings["last_opened_memobook"] not in self.settings["memobooks"]:
             self.settings["last_opened_memobook"] = self.settings["memobooks"][0]
         self._open_memobook(self.settings["last_opened_memobook"])
 
-    def _build_open_memobook_menu(self):
+    def _build_memobooks_menu(self):
         """Build the memobooks menu."""
         # clear menu
         for item in self.menu_memobooks_menu_open.GetMenuItems():
@@ -346,7 +346,8 @@ class MemoBookWindow(wx.Frame):
         MemoBook.create(memobook_path, DEFAULT_MEMOBOOK_SETTINGS, exist_ok=True)
         self.settings["memobooks"].append(memobook_name)
         self.settings.save()
-        self._build_open_memobook_menu()
+        self._build_memobooks_menu()
+        self._open_memobook(memobook_name)
 
     def _on_add_external_memobook(self, event):
         """Add an external memobook."""
@@ -365,7 +366,8 @@ class MemoBookWindow(wx.Frame):
             return
         self.settings["memobooks"].append(str(memobook.path))
         self.settings.save()
-        self._build_open_memobook_menu()
+        self._build_memobooks_menu()
+        self._open_memobook(str(memobook.path))
 
     def _on_delete_memobook(self, event):
         # ask confirmation
