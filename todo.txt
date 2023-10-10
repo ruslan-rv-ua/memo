@@ -1,4 +1,3 @@
-- memobook name in list header
 - no exit on `escape` key
 - switch to just added or created memobook
 - memo

@@ -244,7 +244,7 @@ class MemoBookWindow(wx.Frame):
             self._update_memos(name)
 
         self.list_memos.SetFocus()
-        self.list_memos.SetColumns([ColumnDefn(_("Memo"), "left", 800, "name", valueSetter=rename_memo)])
+        self.list_memos.SetColumns([ColumnDefn(self.memobook.name, "left", 800, "name", valueSetter=rename_memo)])
         self._update_memos(focus_on=0)
         self.settings["last_opened_memobook"] = memobook_str_path
         self.settings.save()
