@@ -1,6 +1,9 @@
 """Memo."""
 
 
+from datetime import datetime
+
+
 class Memo:
     """Memo."""
 
@@ -36,8 +39,16 @@ class Memo:
         self._hashtags = self._correct_hashtags(hashtags) if hashtags else set()
 
     @property
-    def markdown(self) -> str:
-        """The markdown of the memo."""
+    def title(self) -> str:
+        """The title of the memo."""
+        return self._title or self._get_title_from_content()
+
+    def get_markdown(self) -> str:
+        """The markdown of the memo.
+
+        Returns:
+            The markdown of the memo.
+        """
         link_line = ""
         if self._link:
             link_line = f"[{self._link_text}]({self._link})" if self._link_text else self._link
@@ -62,10 +73,11 @@ class Memo:
         """Sanitize the content of the memo.
 
         - strips leading and trailing whitespace and newlines
-        - removes double newlines
+        - removes tripple newlines
         """
         self._content = self._content.strip()
-        self._content = "\n".join(line for line in self._content.splitlines() if line.strip())
+        while "\n\n\n" in self._content:
+            self._content = self._content.replace("\n\n\n", "\n\n")
 
     def _correct_hashtags(self, hashtags) -> set[str]:
         """Correct the hashtags of the memo.
@@ -87,3 +99,12 @@ class Memo:
             hashtags: The hashtags to update.
         """
         self._hashtags.update(self._correct_hashtags(hashtags))
+
+    @staticmethod
+    def get_current_date_hashtag() -> str:
+        """Get the current date as a hashtag.
+
+        Returns:
+            The current date as a hashtag.
+        """
+        return datetime.now().strftime("#%Y-%m-%d")  # noqa: DTZ005
