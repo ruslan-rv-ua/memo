@@ -8,11 +8,11 @@ from pathlib import Path
 import wx
 import wx.html2
 from courlan import check_url
-from editor_window import EditorDialog
-from ObjectListView import ColumnDefn, FastObjectListView
-from utils import Settings
 
+from editor_window import EditorDialog
 from memobook import DEFAULT_MEMOBOOK_SETTINGS, MemoBook
+from ObjectListView2 import ColumnDefn, FastObjectListView
+from utils import Settings
 
 MEMOBOOKS_DIR_NAME = "memobooks"
 DEFAULT_MEMOBOOK_NAME = _("My Memos")  # TRANSLATORS: This is the name of the default memobook.

@@ -28,8 +28,8 @@ repos:
         entry: poetry run black --config=./pyproject.toml .
         language: system
         types: [python]
-      - id: ruff
-        name: ruff
-        language: system
-        entry: poetry run ruff --fix
-        types: [python]
+      # - id: ruff
+      #   name: ruff
+      #   language: system
+      #   entry: poetry run ruff . --fix
+      #   types: [python]

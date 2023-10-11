@@ -4,6 +4,7 @@ import gettext
 from pathlib import Path
 
 import wx
+
 from app import MemoBookWindow
 
 
