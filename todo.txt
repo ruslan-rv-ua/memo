@@ -1,3 +1,4 @@
+- process 404 - do not add bookmark!
 - settings
     - use readability?
     - include images?

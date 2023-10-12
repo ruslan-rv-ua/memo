@@ -1,6 +1,7 @@
 """This module contains the GUI for the memo application."""
 
 import json
+import os
 from enum import Enum
 from gettext import gettext as _
 from pathlib import Path
@@ -10,9 +11,8 @@ import wx.html2
 from courlan import check_url
 
 from editor_window import EditorDialog
-from memobook import DEFAULT_MEMOBOOK_SETTINGS, MemoBook
+from memobook import DEFAULT_MEMOBOOK_SETTINGS, BookmarkParseMode, MemoBook
 from ObjectListView2 import ColumnDefn, FastObjectListView
-from memobook import BookmarkParseMode
 from utils import Settings
 
 MEMOBOOKS_DIR_NAME = "memobooks"
@@ -225,9 +225,14 @@ class MemoBookWindow(wx.Frame):
 
         self.Maximize(True)
 
-        # bind events
-        self.Bind(wx.html2.EVT_WEBVIEW_LOADED, self._on_web_view_loaded, self.web_view)
-        self.Bind(wx.html2.EVT_WEBVIEW_ERROR, self._on_web_view_error, self.web_view)
+        # bind WebView events
+        self.Bind(wx.html2.EVT_WEBVIEW_LOADED, self._on_webview_loaded, self.web_view)
+        self.Bind(wx.html2.EVT_WEBVIEW_ERROR, self._on_webview_error, self.web_view)
+        self.Bind(wx.html2.EVT_WEBVIEW_NEWWINDOW, self._on_webview_newwindow, self.web_view)
+        """ TODO: bind events if needed
+        self.Bind(wx.html2.EVT_WEBVIEW_NAVIGATING, self._on_webview_navigating, self.web_view)
+        self.Bind(wx.html2.EVT_WEBVIEW_NAVIGATED, self._on_webview_navigated, self.web_view)
+        """
 
     def _open_memobook(self, memobook_str_path: Path):
         """Open the memobook at the given path."""
@@ -429,32 +434,43 @@ class MemoBookWindow(wx.Frame):
     def _on_add_bookmark(self, event):
         """Add a bookmark."""
         # ask bookmark's URL
-        self.url = wx.GetTextFromUser(_("Enter the URL of the bookmark"), _("Add bookmark"), "")
-        if not self.url:
+        url = wx.GetTextFromUser(_("Enter the URL of the bookmark"), _("Add bookmark"), "")
+        url = url.strip()
+        if not url:
             return
         # validate URL
         try:
-            self.url, self.domain_name = check_url(self.url)
+            self.url, self.domain_name = check_url(url)
             if not self.url:
                 wx.MessageBox(_("Invalid URL"), _("Error"), wx.OK | wx.ICON_ERROR)
                 return
         except TypeError:
             wx.MessageBox(_("Invalid URL"), _("Error"), wx.OK | wx.ICON_ERROR)
             return
-
         self.web_view.LoadURL(self.url)
         self.web_view_action = WebviewAction.ADD_BOOKMARK
         return
 
-    def _on_web_view_loaded(self, event):
-        if self.web_view_action == WebviewAction.ADD_BOOKMARK:
-            self.web_view_action = WebviewAction.NONE
-            self._add_bookmark()
+    def _on_webview_navigating(self, event):
+        pass
 
-    def _on_web_view_error(self, event):
+    def _on_webview_navigated(self, event):
+        pass
+
+    def _on_webview_loaded(self, event):
+        if self.web_view_action != WebviewAction.ADD_BOOKMARK or event.GetURL() == "about:blank":
+            return
+        self.web_view_action = WebviewAction.NONE
+        self._add_bookmark()
+
+    def _on_webview_error(self, event):
         if self.web_view_action == WebviewAction.ADD_BOOKMARK:
             wx.MessageBox(_("Could not load the page"), _("Error"), wx.OK | wx.ICON_ERROR)
             self.web_view_action = WebviewAction.NONE
+
+    def _on_webview_newwindow(self, event):
+        url = event.GetURL()
+        os.startfile(url)  # noqa: S606
 
     def _add_bookmark(self):
         """Add a bookmark.
