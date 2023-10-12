@@ -1,6 +1,7 @@
 """A memo book."""
 
 from datetime import datetime
+from enum import Enum
 from gettext import gettext as _
 from pathlib import Path
 
@@ -10,6 +11,15 @@ from utils import HTML2MarkdownParser, Settings
 
 MAX_FILENAME_LENGTH = 200
 MEMO_EXTENSION = ".md"
+
+
+class BookmarkParseMode(str, Enum):
+    """The parse mode of a bookmark."""
+
+    EXCERPT = "Excerpt"
+    EXCERPT_OR_CONTENT = "Excerpt or content"
+    CONTENT = "Content"
+
 
 DEFAULT_HTML2TEXT_SETTINGS = {
     "unicode_snob": True,
@@ -29,6 +39,7 @@ DEFAULT_MEMOBOOK_SETTINGS = {
     "add_bookmark_hashtag": True,
     "add_memobook_name_hashtag": False,
     "html2text": DEFAULT_HTML2TEXT_SETTINGS,
+    "bookmark_parse_mode": BookmarkParseMode.EXCERPT,
 }
 
 
@@ -81,7 +92,7 @@ class MemoBook:
         """Add a memo from an object."""
         memo_path = self._get_memo_path(self._make_unique_filename(name))
         memo_path.write_text(memo_object.get_markdown(), encoding="utf-8")
-        return name
+        return memo_path.stem
 
     def add_memo(self, content: str, name: str = "") -> str:
         """Add a new memo to the memo book.
@@ -152,11 +163,8 @@ class MemoBook:
         if not old_memo_path.exists():
             raise FileNotFoundError(f"Memo '{old_name}' not found.")
         new_memo_path = self._get_memo_path(self._make_unique_filename(new_name))
-        try:
-            new_memo_path.rename(old_memo_path)
-        except Exception:  # noqa: BLE001
-            return None
-        return new_name
+        old_memo_path.rename(new_memo_path)
+        return new_memo_path.stem
 
     def get_memo_markdown(self, name: str) -> str:
         """Get the content (markdonw) of a memo."""

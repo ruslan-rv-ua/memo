@@ -12,6 +12,7 @@ from courlan import check_url
 from editor_window import EditorDialog
 from memobook import DEFAULT_MEMOBOOK_SETTINGS, MemoBook
 from ObjectListView2 import ColumnDefn, FastObjectListView
+from memobook import BookmarkParseMode
 from utils import Settings
 
 MEMOBOOKS_DIR_NAME = "memobooks"
@@ -456,16 +457,27 @@ class MemoBookWindow(wx.Frame):
             self.web_view_action = WebviewAction.NONE
 
     def _add_bookmark(self):
-        """Add a bookmark."""
+        """Add a bookmark.
+
+        Raises:
+            ValueError: If the parse mode is invalid.
+        """
         success, article_json = self.web_view.RunScript(READABILITY_JS)
         if not success or not article_json:
             wx.MessageBox(_("Could not get the page"), _("Error"), wx.OK | wx.ICON_ERROR)
             return
         article = json.loads(article_json)
-        readable_html = article["content"]
+        if self.memobook.settings["bookmark_parse_mode"] == BookmarkParseMode.EXCERPT:
+            memo_body = article["excerpt"]
+        elif self.memobook.settings["bookmark_parse_mode"] == BookmarkParseMode.CONTENT:
+            memo_body = article["content"]
+        elif self.memobook.settings["bookmark_parse_mode"] == BookmarkParseMode.EXCERPT_OR_CONTENT:
+            memo_body = article["excerpt"] if article["excerpt"] else article["content"]
+        else:
+            raise ValueError(f"Unknown parse mode: {self.memobook.settings['bookmark_parse_mode']}")
         name = f"{article['title']} ({self.domain_name})" if article["title"] else self.domain_name
         name = self.memobook.add_memo_from_html(
-            html=readable_html, name=name, title=article["title"], link=self.url, link_text=self.domain_name
+            html=memo_body, name=name, title=article["title"], link=self.url, link_text=self.domain_name
         )
         if not name:
             wx.MessageBox(_("Could not add the bookmark"), _("Error"), wx.OK | wx.ICON_ERROR)
