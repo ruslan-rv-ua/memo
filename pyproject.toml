@@ -20,7 +20,6 @@ repository = "https://github.com/ruslan-rv-ua/memo"
 python = ">=3.11, <4.0"
 wxpython = "^4.2.1"
 html2text = "^2020.1.16"
-courlan = "^0.9.4"
 markdown-it-pyrs = "^0.3.0"
 
 [tool.poetry.group.lint.dependencies]

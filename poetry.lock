@@ -205,22 +205,6 @@ files = [
 ]
 
 [[package]]
-name = "courlan"
-version = "0.9.4"
-description = "Clean, filter and sample URLs to optimize data collection – includes spam, content type and language filters."
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "courlan-0.9.4-py3-none-any.whl", hash = "sha256:72f03e307f3dfe91e0c790ab0766bab2aa319fdb09597daec920e4a394cfc14e"},
-    {file = "courlan-0.9.4.tar.gz", hash = "sha256:6906aa9a15ae9d442821e06ae153c60f385cff41a8d44b9597c00b349f7043c5"},
-]
-
-[package.dependencies]
-langcodes = ">=3.3.0"
-tld = {version = ">=0.13", markers = "python_version >= \"3.7\""}
-urllib3 = {version = ">=1.26,<3", markers = "python_version >= \"3.7\""}
-
-[[package]]
 name = "coverage"
 version = "7.3.0"
 description = "Code coverage measurement for Python"
@@ -415,20 +399,6 @@ MarkupSafe = ">=2.0"
 
 [package.extras]
 i18n = ["Babel (>=2.7)"]
-
-[[package]]
-name = "langcodes"
-version = "3.3.0"
-description = "Tools for labeling human languages with IETF language tags"
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "langcodes-3.3.0-py3-none-any.whl", hash = "sha256:4d89fc9acb6e9c8fdef70bcdf376113a3db09b67285d9e1d534de6d8818e7e69"},
-    {file = "langcodes-3.3.0.tar.gz", hash = "sha256:794d07d5a28781231ac335a1561b8442f8648ca07cd518310aeb45d6f0807ef6"},
-]
-
-[package.extras]
-data = ["language-data (>=1.1,<2.0)"]
 
 [[package]]
 name = "lxml"
@@ -1406,17 +1376,6 @@ files = [
 ]
 
 [[package]]
-name = "tld"
-version = "0.13"
-description = "Extract the top-level domain (TLD) from the URL given."
-optional = false
-python-versions = ">=3.7, <4"
-files = [
-    {file = "tld-0.13-py2.py3-none-any.whl", hash = "sha256:f75b2be080f767ed17c2338a339eaa4fab5792586319ca819119da252f9f3749"},
-    {file = "tld-0.13.tar.gz", hash = "sha256:93dde5e1c04bdf1844976eae440706379d21f4ab235b73c05d7483e074fb5629"},
-]
-
-[[package]]
 name = "urllib3"
 version = "2.0.4"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -1525,4 +1484,4 @@ six = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11, <4.0"
-content-hash = "24dac2861d755d4bf6653323d0ade78a7e474809a863390f17350726f10240f3"
+content-hash = "1dc2b5a1e3b3923f215c2a901eb9102bb1051a35ae42671af15b847b4d4aa554"
