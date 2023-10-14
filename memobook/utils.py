@@ -1,38 +1,32 @@
 """Utilities for the memo package."""
 
 
-import ctypes
 import json
+import re
 from pathlib import Path
+from urllib.parse import urlparse
 
 from html2text import HTML2Text
 
-
-# clipboard, Windows only
-def copy_to_clipboard(text: str) -> None:
-    """Copy the given text to the clipboard.
-
-    Args:
-        text: The text to copy to the clipboard.
-    """
-    ctypes.windll.user32.OpenClipboard(0)
-    ctypes.windll.user32.EmptyClipboard()
-    ctypes.windll.user32.SetClipboardData(1, ctypes.create_string_buffer(text.encode("utf-8")))
-    ctypes.windll.user32.CloseClipboard()
+VALIDATE_URL_REGEX = re.compile(
+    r"^(?:http|ftp)s?://"  # http:// or https://
+    r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|"  # domain...
+    r"localhost|"  # localhost...
+    r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # ...or ip
+    r"(?::\d+)?"  # optional port
+    r"(?:/?|[/?]\S+)$",
+    re.IGNORECASE,
+)
 
 
-def get_clipboard_text() -> str:
-    """Get the text from the clipboard.
+def validate_url(url):
+    """Validate the given URL."""
+    return re.match(VALIDATE_URL_REGEX, url) is not None
 
-    Returns:
-        The text from the clipboard.
-    """
-    try:
-        ctypes.windll.user32.OpenClipboard(0)
-        text = ctypes.windll.user32.GetClipboardData(1).decode("utf-8")
-    finally:
-        ctypes.windll.user32.CloseClipboard()
-    return text
+
+def get_domain_name_from_url(url):
+    """Get the domain name from the given URL."""
+    return urlparse(url).netloc
 
 
 class HTML2MarkdownParser:

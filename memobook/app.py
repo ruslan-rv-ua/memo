@@ -8,12 +8,11 @@ from pathlib import Path
 
 import wx
 import wx.html2
-from courlan import check_url
 
 from editor_window import EditorDialog
 from memobook import DEFAULT_MEMOBOOK_SETTINGS, BookmarkParseMode, MemoBook
 from ObjectListView2 import ColumnDefn, FastObjectListView
-from utils import Settings
+from utils import Settings, get_domain_name_from_url, validate_url
 
 MEMOBOOKS_DIR_NAME = "memobooks"
 DEFAULT_MEMOBOOK_NAME = _("My Memos")  # TRANSLATORS: This is the name of the default memobook.
@@ -433,21 +432,25 @@ class MemoBookWindow(wx.Frame):
 
     def _on_add_bookmark(self, event):
         """Add a bookmark."""
+        # get clipboard text, maybe it's a URL
+        text_data = wx.TextDataObject()
+        if wx.TheClipboard.Open():
+            success = wx.TheClipboard.GetData(text_data)
+            wx.TheClipboard.Close()
+        url = text_data.GetText() if success else ""
+        # validate URL
+        if not validate_url(url):
+            url = ""
         # ask bookmark's URL
-        url = wx.GetTextFromUser(_("Enter the URL of the bookmark"), _("Add bookmark"), "")
+        url = wx.GetTextFromUser(_("Enter the URL of the bookmark"), _("Add bookmark"), url)
         url = url.strip()
         if not url:
             return
         # validate URL
-        try:
-            self.url, self.domain_name = check_url(url)
-            if not self.url:
-                wx.MessageBox(_("Invalid URL"), _("Error"), wx.OK | wx.ICON_ERROR)
-                return
-        except TypeError:
+        if not validate_url(url):
             wx.MessageBox(_("Invalid URL"), _("Error"), wx.OK | wx.ICON_ERROR)
             return
-        self.web_view.LoadURL(self.url)
+        self.web_view.LoadURL(url)
         self.web_view_action = WebviewAction.ADD_BOOKMARK
         return
 
@@ -482,6 +485,8 @@ class MemoBookWindow(wx.Frame):
         if not success or not article_json:
             wx.MessageBox(_("Could not get the page"), _("Error"), wx.OK | wx.ICON_ERROR)
             return
+        url = self.web_view.GetCurrentURL()
+        domain_name = get_domain_name_from_url(url)
         article = json.loads(article_json)
         if self.memobook.settings["bookmark_parse_mode"] == BookmarkParseMode.EXCERPT:
             memo_body = article["excerpt"]
@@ -491,9 +496,9 @@ class MemoBookWindow(wx.Frame):
             memo_body = article["excerpt"] if article["excerpt"] else article["content"]
         else:
             raise ValueError(f"Unknown parse mode: {self.memobook.settings['bookmark_parse_mode']}")
-        name = f"{article['title']} ({self.domain_name})" if article["title"] else self.domain_name
+        name = f"{article['title']} ({domain_name})" if article["title"] else domain_name
         name = self.memobook.add_memo_from_html(
-            html=memo_body, name=name, title=article["title"], link=self.url, link_text=self.domain_name
+            html=memo_body, name=name, title=article["title"], link=url, link_text=domain_name
         )
         if not name:
             wx.MessageBox(_("Could not add the bookmark"), _("Error"), wx.OK | wx.ICON_ERROR)

@@ -1,3 +1,4 @@
+- fix if parsing is None
 - process 404 - do not add bookmark!
 - settings
     - use readability?
