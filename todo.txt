@@ -1,7 +1,4 @@
-- fix if parsing is None
-- process 404 - do not add bookmark!
 - settings
-    - use readability?
     - include images?
     - include links?
     - ask ro not to add very large parsed bookmark text
@@ -18,3 +15,4 @@
 - quick and full search
 - button to copy code to clipboard
 - i18n
+- process 404 - do not add bookmark!

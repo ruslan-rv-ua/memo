@@ -482,12 +482,16 @@ class MemoBookWindow(wx.Frame):
             ValueError: If the parse mode is invalid.
         """
         success, article_json = self.web_view.RunScript(READABILITY_JS)
-        if not success or not article_json:
+        try:
+            article = json.loads(article_json)
+        except json.JSONDecodeError:
+            article = None
+        if not success or not article_json or not article:
             wx.MessageBox(_("Could not get the page"), _("Error"), wx.OK | wx.ICON_ERROR)
+            self.web_view.LoadURL("about:blank")  # TODO: make help page
             return
         url = self.web_view.GetCurrentURL()
         domain_name = get_domain_name_from_url(url)
-        article = json.loads(article_json)
         if self.memobook.settings["bookmark_parse_mode"] == BookmarkParseMode.EXCERPT:
             memo_body = article["excerpt"]
         elif self.memobook.settings["bookmark_parse_mode"] == BookmarkParseMode.CONTENT:
