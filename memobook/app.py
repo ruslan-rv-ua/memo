@@ -10,7 +10,7 @@ import wx
 import wx.html2
 
 from editor_window import EditorDialog
-from memobook import DEFAULT_MEMOBOOK_SETTINGS, BookmarkParseMode, MemoBook
+from memobook import DEFAULT_MEMOBOOK_SETTINGS, MemoBook
 from ObjectListView2 import ColumnDefn, FastObjectListView
 from utils import Settings, get_domain_name_from_url, validate_url
 
@@ -492,14 +492,10 @@ class MemoBookWindow(wx.Frame):
             return
         url = self.web_view.GetCurrentURL()
         domain_name = get_domain_name_from_url(url)
-        if self.memobook.settings["bookmark_parse_mode"] == BookmarkParseMode.EXCERPT:
-            memo_body = article["excerpt"]
-        elif self.memobook.settings["bookmark_parse_mode"] == BookmarkParseMode.CONTENT:
-            memo_body = article["content"]
-        elif self.memobook.settings["bookmark_parse_mode"] == BookmarkParseMode.EXCERPT_OR_CONTENT:
-            memo_body = article["excerpt"] if article["excerpt"] else article["content"]
-        else:
-            raise ValueError(f"Unknown parse mode: {self.memobook.settings['bookmark_parse_mode']}")
+        memo_body = article["excerpt"]
+        if self.memobook.settings["include_bookmark_content"]:
+            memo_body = memo_body + "\n\n" + article["content"]
+        memo_body = memo_body.strip()  # TODO: check if empty
         name = f"{article['title']} ({domain_name})" if article["title"] else domain_name
         name = self.memobook.add_memo_from_html(
             html=memo_body, name=name, title=article["title"], link=url, link_text=domain_name

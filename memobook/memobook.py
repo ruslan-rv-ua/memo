@@ -1,7 +1,6 @@
 """A memo book."""
 
 from datetime import datetime
-from enum import Enum
 from gettext import gettext as _
 from pathlib import Path
 
@@ -11,14 +10,6 @@ from utils import HTML2MarkdownParser, Settings
 
 MAX_FILENAME_LENGTH = 200
 MEMO_EXTENSION = ".md"
-
-
-class BookmarkParseMode(str, Enum):
-    """The parse mode of a bookmark."""
-
-    EXCERPT = "Excerpt"
-    EXCERPT_OR_CONTENT = "Excerpt or content"
-    CONTENT = "Content"
 
 
 DEFAULT_HTML2TEXT_SETTINGS = {
@@ -39,7 +30,7 @@ DEFAULT_MEMOBOOK_SETTINGS = {
     "add_bookmark_hashtag": True,
     "add_memobook_name_hashtag": False,
     "html2text": DEFAULT_HTML2TEXT_SETTINGS,
-    "bookmark_parse_mode": BookmarkParseMode.EXCERPT,
+    "include_bookmark_content": False,
 }
 
 
