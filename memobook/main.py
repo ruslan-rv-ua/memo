@@ -1,11 +1,17 @@
 """The main application object for the memo application."""
 
-import gettext
+import gettext  # noqa: I001
 from pathlib import Path
 
 import wx
 
 from app import MemoBookWindow
+
+
+# TODO: DEBUG only, remove in production
+from icecream import install
+
+install()
 
 
 class MemoApp(wx.App):
