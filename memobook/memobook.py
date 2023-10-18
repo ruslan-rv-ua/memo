@@ -93,7 +93,7 @@ class MemoBook:
         title: str = "",
         link: str = "",
         link_text: str = "",
-        html_parser_params=None,
+        parse_params=None,
     ) -> str:
         """Add a new memo to the memo book from HTML.
 
@@ -103,13 +103,22 @@ class MemoBook:
             title: The title of the memo.
             link: The link of the memo.
             link_text: The link text of the memo.
+            html_parser_params: The HTML2Markdown parser parameters.
 
 
         Returns:
             The name of the added memo or None if the memo was not added.
         """
         html2text_parser = HTML2MarkdownParser()
-        html2text_parser.update_params(html_parser_params or {})
+        parse_params = parse_params or {}
+        html_parser_params = {}
+        html_parser_params["ignore_links"] = not parse_params.get(
+            "include_links", self.settings["html_parser_include_links"]
+        )
+        html_parser_params["ignore_images"] = not parse_params.get(
+            "include_images", self.settings["html_parser_include_images"]
+        )
+        html2text_parser.update_params(html_parser_params)
         markdown = html2text_parser.parse(html)
         hashtags = [Memo.get_current_date_hashtag(), _("#bookmark")]  # TODO: add support for settings
         memo_object = Memo(content=markdown, title=title, link=link, link_text=link_text, hashtags=hashtags)
