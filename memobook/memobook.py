@@ -12,25 +12,13 @@ MAX_FILENAME_LENGTH = 200
 MEMO_EXTENSION = ".md"
 
 
-DEFAULT_HTML2TEXT_SETTINGS = {
-    "unicode_snob": True,
-    "slip_internal_links": True,
-    "protect_links": False,
-    "ignore_anchors": True,
-    "ignore_emphasis": True,
-    "mark_code": False,
-    "ignore_links": True,
-    "ignore_images": True,
-    "ignore_tables": False,
-}
-
-
 DEFAULT_MEMOBOOK_SETTINGS = {
     "add_date_hashtag": True,
     "add_bookmark_hashtag": True,
     "add_memobook_name_hashtag": False,
-    "html2text": DEFAULT_HTML2TEXT_SETTINGS,
-    "include_bookmark_content": False,
+    "include_bookmark_content": True,
+    "html_parser_include_links": False,
+    "html_parser_include_images": False,
 }
 
 
@@ -42,8 +30,6 @@ class MemoBook:
         self._path = path
         self._settings_path = path / ".settings"
         self.settings = Settings(self._settings_path)
-        self.html2text_parser = HTML2MarkdownParser()
-        self.html2text_parser.update_params(self.settings["html2text"])
 
     @property
     def path(self) -> Path:
@@ -101,7 +87,13 @@ class MemoBook:
         return self._add_memo_from_object(memo_object, name=name or memo_object.title)
 
     def add_memo_from_html(
-        self, html: str, name: str = "", title: str = "", link: str = "", link_text: str = ""
+        self,
+        html: str,
+        name: str = "",
+        title: str = "",
+        link: str = "",
+        link_text: str = "",
+        html_parser_params=None,
     ) -> str:
         """Add a new memo to the memo book from HTML.
 
@@ -116,7 +108,9 @@ class MemoBook:
         Returns:
             The name of the added memo or None if the memo was not added.
         """
-        markdown = self.html2text_parser.parse(html)
+        html2text_parser = HTML2MarkdownParser()
+        html2text_parser.update_params(html_parser_params or {})
+        markdown = html2text_parser.parse(html)
         hashtags = [Memo.get_current_date_hashtag(), _("#bookmark")]  # TODO: add support for settings
         memo_object = Memo(content=markdown, title=title, link=link, link_text=link_text, hashtags=hashtags)
         return self._add_memo_from_object(memo_object, name=name or memo_object.title)
