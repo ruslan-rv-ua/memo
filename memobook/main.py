@@ -8,12 +8,6 @@ import wx
 from app import MemoBookWindow
 
 
-# TODO: DEBUG only, remove in production
-from icecream import install
-
-install()
-
-
 class MemoApp(wx.App):
     """The main application object."""
 

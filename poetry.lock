@@ -197,6 +197,20 @@ files = [
 ]
 
 [[package]]
+name = "cheap-repr"
+version = "0.5.1"
+description = "Better version of repr/reprlib for short, cheap string representations."
+optional = false
+python-versions = "*"
+files = [
+    {file = "cheap_repr-0.5.1-py2.py3-none-any.whl", hash = "sha256:30096998aeb49367a4a153988d7a99dce9dc59bbdd4b19740da6b4f3f97cf2ff"},
+    {file = "cheap_repr-0.5.1.tar.gz", hash = "sha256:31ec63b9d8394aa23d746c8376c8307f75f9fca0b983566b8bcf13cc661fe6dd"},
+]
+
+[package.extras]
+tests = ["Django", "Django (<2)", "Django (<3)", "chainmap", "numpy (>=1.16.3)", "numpy (>=1.16.3,<1.17)", "numpy (>=1.16.3,<1.19)", "pandas (>=0.24.2)", "pandas (>=0.24.2,<0.25)", "pandas (>=0.24.2,<0.26)", "pytest"]
+
+[[package]]
 name = "click"
 version = "8.1.7"
 description = "Composable command line interface toolkit"
@@ -377,23 +391,6 @@ files = [
     {file = "html2text-2020.1.16-py3-none-any.whl", hash = "sha256:c7c629882da0cf377d66f073329ccf34a12ed2adf0169b9285ae4e63ef54c82b"},
     {file = "html2text-2020.1.16.tar.gz", hash = "sha256:e296318e16b059ddb97f7a8a1d6a5c1d7af4544049a01e261731d2d5cc277bbb"},
 ]
-
-[[package]]
-name = "icecream"
-version = "2.1.3"
-description = "Never use print() to debug again; inspect variables, expressions, and program execution with a single, simple function call."
-optional = false
-python-versions = "*"
-files = [
-    {file = "icecream-2.1.3-py2.py3-none-any.whl", hash = "sha256:757aec31ad4488b949bc4f499d18e6e5973c40cc4d4fc607229e78cfaec94c34"},
-    {file = "icecream-2.1.3.tar.gz", hash = "sha256:0aa4a7c3374ec36153a1d08f81e3080e83d8ac1eefd97d2f4fe9544e8f9b49de"},
-]
-
-[package.dependencies]
-asttokens = ">=2.0.1"
-colorama = ">=0.3.9"
-executing = ">=0.3.1"
-pygments = ">=2.2.0"
 
 [[package]]
 name = "identify"
@@ -1413,6 +1410,27 @@ files = [
 ]
 
 [[package]]
+name = "snoop"
+version = "0.4.3"
+description = "Powerful debugging tools for Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "snoop-0.4.3-py2.py3-none-any.whl", hash = "sha256:b7418581889ff78b29d9dc5ad4625c4c475c74755fb5cba82c693c6e32afadc0"},
+    {file = "snoop-0.4.3.tar.gz", hash = "sha256:2e0930bb19ff0dbdaa6f5933f88e89ed5984210ea9f9de0e1d8231fa5c1c1f25"},
+]
+
+[package.dependencies]
+asttokens = "*"
+cheap-repr = ">=0.4.0"
+executing = "*"
+pygments = "*"
+six = "*"
+
+[package.extras]
+tests = ["Django", "birdseye", "littleutils", "numpy (>=1.16.5)", "pandas (>=0.24.2)", "pprintpp", "prettyprinter", "pytest", "pytest-order", "pytest-order (<=0.11.0)"]
+
+[[package]]
 name = "soupsieve"
 version = "2.4.1"
 description = "A modern CSS selector implementation for Beautiful Soup."
@@ -1532,4 +1550,4 @@ six = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11, <4.0"
-content-hash = "2550217c3b63dc83b57780d2ad7d4e44d83baa365d9f9d0c516cb080bb13599f"
+content-hash = "4ba9ee55fe2175af87e99457b85ae89862ef9ef87a43b3061f4760d1a9b594a2"

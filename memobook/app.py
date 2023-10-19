@@ -1,5 +1,8 @@
 """This module contains the GUI for the memo application."""
 
+# TODO: DEBUG only, remove in production
+from snoop import snoop, pp  # noqa: F401, I001
+
 import json
 import os
 from enum import Enum
@@ -533,7 +536,6 @@ class MemoBookWindow(wx.Frame):
             memo_body = article["content"]
         memo_body = memo_body.strip()  # TODO: check if empty
         name = f"{article['title']} ({domain_name})" if article["title"] else domain_name
-        ic(self.parse_params)
         name = self.memobook.add_memo_from_html(
             html=memo_body,
             name=name,
