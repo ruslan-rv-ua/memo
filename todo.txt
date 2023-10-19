@@ -1,14 +1,10 @@
-- settings
-    - include images?
-    - include links?
-    - ask ro not to add very large parsed bookmark text
+- global keys: F6, Tab
+- external editors
 - memo
     - location
         - copy
         - open folder
 - edit memobook settings
-- add bookmark with parameters
-- external editors
 - export
 - import
 - other file types: html, doc, pdf
@@ -16,3 +12,5 @@
 - button to copy code to clipboard
 - i18n
 - process 404 - do not add bookmark!
+- ask add or not to add very large parsed bookmark text
+- ObjectListView
