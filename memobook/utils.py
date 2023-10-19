@@ -18,6 +18,18 @@ VALIDATE_URL_REGEX = re.compile(
     re.IGNORECASE,
 )
 
+DEFAULT_HTML2TEXT_SETTINGS = {
+    "unicode_snob": True,
+    "slip_internal_links": True,
+    "protect_links": False,
+    "ignore_anchors": True,
+    "ignore_emphasis": True,
+    "mark_code": False,
+    "ignore_tables": False,
+    "ignore_links": True,
+    "ignore_images": True,
+}
+
 
 def validate_url(url):
     """Validate the given URL."""
@@ -41,6 +53,7 @@ class HTML2MarkdownParser:
     ) -> None:
         """Initialize the converter."""
         self._html2text_converter = HTML2Text()
+        self.update_params(DEFAULT_HTML2TEXT_SETTINGS)
 
     def update_params(self, params: dict) -> None:
         """Update the parameters of the converter."""

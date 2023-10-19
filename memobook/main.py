@@ -1,6 +1,6 @@
 """The main application object for the memo application."""
 
-import gettext
+import gettext  # noqa: I001
 from pathlib import Path
 
 import wx

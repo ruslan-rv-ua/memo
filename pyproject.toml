@@ -40,6 +40,10 @@ pytest = "*"
 pytest-github-actions-annotate-failures = "*"
 pytest-cov = "*"
 
+
+[tool.poetry.group.dev.dependencies]
+snoop = "^0.4.3"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

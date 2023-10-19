@@ -1,5 +1,8 @@
 """This module contains the GUI for the memo application."""
 
+# TODO: DEBUG only, remove in production
+from snoop import snoop, pp  # noqa: F401, I001
+
 import json
 import os
 from enum import Enum
@@ -9,6 +12,7 @@ from pathlib import Path
 import wx
 import wx.html2
 
+from bookmark_dialog import BookmarkDialog
 from editor_window import EditorDialog
 from memobook import DEFAULT_MEMOBOOK_SETTINGS, MemoBook
 from ObjectListView2 import ColumnDefn, FastObjectListView
@@ -166,7 +170,10 @@ class MemoBookWindow(wx.Frame):
         self.menu_memo_add_memo = self.menu_memo.Append(wx.ID_ANY, _("Add memo\tCtrl+M"))
         self.Bind(wx.EVT_MENU, self._on_add_memo, self.menu_memo_add_memo)
 
-        self.menu_memo_add_bookmark = self.menu_memo.Append(wx.ID_ANY, _("Add bookmark\tCtrl+B"))
+        self.menu_memo_quick_add_bookmark = self.menu_memo.Append(wx.ID_ANY, _("Quick add bookmark\tCtrl+B"))
+        self.Bind(wx.EVT_MENU, self._on_quick_add_bookmark, self.menu_memo_quick_add_bookmark)
+
+        self.menu_memo_add_bookmark = self.menu_memo.Append(wx.ID_ANY, _("Add bookmark\tCtrl+Shift+B"))
         self.Bind(wx.EVT_MENU, self._on_add_bookmark, self.menu_memo_add_bookmark)
 
         self.menu_memo_edit_memo = self.menu_memo.Append(wx.ID_ANY, _("Edit\tF4"))
@@ -430,19 +437,24 @@ class MemoBookWindow(wx.Frame):
         self.search_text.SetValue("")  # to reset the search results
         self._update_memos(name)
 
-    def _on_add_bookmark(self, event):
-        """Add a bookmark."""
-        # get clipboard text, maybe it's a URL
+    def _get_url_from_clipboard(self):
         text_data = wx.TextDataObject()
         if wx.TheClipboard.Open():
             success = wx.TheClipboard.GetData(text_data)
             wx.TheClipboard.Close()
         url = text_data.GetText() if success else ""
-        # validate URL
         if not validate_url(url):
             url = ""
-        # ask bookmark's URL
-        url = wx.GetTextFromUser(_("Enter the URL of the bookmark"), _("Add bookmark"), url)
+        return url
+
+    def _on_quick_add_bookmark(self, event):
+        """Quickly add a bookmark.
+
+        The URL is read from the clipboard, if possible.
+        Parsing only title and description of the webpage.
+        """
+        clipboard_url = self._get_url_from_clipboard()
+        url = wx.GetTextFromUser(_("Enter the URL of the bookmark"), _("Add bookmark"), clipboard_url)
         url = url.strip()
         if not url:
             return
@@ -450,8 +462,35 @@ class MemoBookWindow(wx.Frame):
         if not validate_url(url):
             wx.MessageBox(_("Invalid URL"), _("Error"), wx.OK | wx.ICON_ERROR)
             return
-        self.web_view.LoadURL(url)
+        self.parse_params = {"include_bookmark_content": False}
         self.web_view_action = WebviewAction.ADD_BOOKMARK
+        self.web_view.LoadURL(url)
+        return
+
+    def _on_add_bookmark(self, event):
+        clipboard_url = self._get_url_from_clipboard()
+        dlg = BookmarkDialog(
+            parent=self,
+            url=clipboard_url,
+            include_links=self.memobook.settings["html_parser_include_links"],
+            include_images=self.memobook.settings["html_parser_include_images"],
+        )
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        url = dlg.url.GetValue().strip()
+        if not url:
+            return
+        # validate URL
+        if not validate_url(url):
+            wx.MessageBox(_("Invalid URL"), _("Error"), wx.OK | wx.ICON_ERROR)
+            return
+        self.parse_params = {
+            "include_bookmark_content": True,
+            "include_links": dlg.include_links,
+            "include_images": dlg.include_images,
+        }
+        self.web_view_action = WebviewAction.ADD_BOOKMARK
+        self.web_view.LoadURL(url)
         return
 
     def _on_webview_navigating(self, event):
@@ -493,16 +532,22 @@ class MemoBookWindow(wx.Frame):
         url = self.web_view.GetCurrentURL()
         domain_name = get_domain_name_from_url(url)
         memo_body = article["excerpt"]
-        if self.memobook.settings["include_bookmark_content"]:
-            memo_body = memo_body + "\n\n" + article["content"]
+        if self.parse_params["include_bookmark_content"] and article["content"]:
+            memo_body = article["content"]
         memo_body = memo_body.strip()  # TODO: check if empty
         name = f"{article['title']} ({domain_name})" if article["title"] else domain_name
         name = self.memobook.add_memo_from_html(
-            html=memo_body, name=name, title=article["title"], link=url, link_text=domain_name
+            html=memo_body,
+            name=name,
+            title=article["title"],
+            link=url,
+            link_text=domain_name,
+            parse_params=self.parse_params,
         )
         if not name:
             wx.MessageBox(_("Could not add the bookmark"), _("Error"), wx.OK | wx.ICON_ERROR)
             return
+        self.parse_params = None
         self.search_text.SetValue("")  # to reset the search results TODO: make this a method
         self._update_memos(name)
 

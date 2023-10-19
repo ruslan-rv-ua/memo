@@ -81,4 +81,4 @@ venv.bak/
 # project exclusions
 test_memobook/
 */memobooks/
-memo/*.settings
+memobook/.settings
