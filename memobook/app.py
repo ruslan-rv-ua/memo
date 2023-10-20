@@ -219,6 +219,7 @@ class MemoBookWindow(wx.Frame):
         ############################################################ right part
 
         self.web_view = wx.html2.WebView.New(self.panel, wx.ID_ANY)
+        self.web_view.AddScriptMessageHandler("webview_tab_event")
 
         # add left and right parts to main sizer
         self.main_sizer.Add(self.left_sizer, 1, wx.ALL | wx.EXPAND, 5)
@@ -235,6 +236,7 @@ class MemoBookWindow(wx.Frame):
         self.Bind(wx.html2.EVT_WEBVIEW_LOADED, self._on_webview_loaded, self.web_view)
         self.Bind(wx.html2.EVT_WEBVIEW_ERROR, self._on_webview_error, self.web_view)
         self.Bind(wx.html2.EVT_WEBVIEW_NEWWINDOW, self._on_webview_newwindow, self.web_view)
+        self.Bind(wx.html2.EVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, self._on_webview_script_message_recieved)
         """ TODO: bind events if needed
         self.Bind(wx.html2.EVT_WEBVIEW_NAVIGATING, self._on_webview_navigating, self.web_view)
         self.Bind(wx.html2.EVT_WEBVIEW_NAVIGATED, self._on_webview_navigated, self.web_view)
@@ -513,6 +515,11 @@ class MemoBookWindow(wx.Frame):
     def _on_webview_newwindow(self, event):
         url = event.GetURL()
         os.startfile(url)  # noqa: S606
+
+    def _on_webview_script_message_recieved(self, event):
+        """Process `tab` key event."""
+        self.list_memos.SetFocus()
+        event.Skip()
 
     def _add_bookmark(self):
         """Add a bookmark.

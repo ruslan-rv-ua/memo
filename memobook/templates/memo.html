@@ -371,10 +371,17 @@
         {{content}}
     </div>
     <script>
-        var links = document.getElementsByTagName("a");
-        for (var i = 0; i < links.length; i++) {
-            links[i].setAttribute("target", "_blank");
-        }
+        // add target="_blank" to all links
+        document.querySelectorAll("a").forEach(link => {
+            link.target = "_blank";
+        });
+        // handle `Tab` and `Shift+Tab`
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Tab") {
+                window.webview_tab_event.postMessage("tab");
+                event.preventDefault();
+            }
+        });
     </script>
 </body>
 
