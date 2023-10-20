@@ -103,7 +103,7 @@ class MemoBook:
             title: The title of the memo.
             link: The link of the memo.
             link_text: The link text of the memo.
-            html_parser_params: The HTML2Markdown parser parameters.
+            parse_params: Optional parameters for the HTML parser.
 
 
         Returns:
